@@ -9,7 +9,7 @@ weasyprint==60.1  # For PDF generation
 python-docx==1.1.0  # For Word documents
 
 # Message Queue
-aio-pika==9.3.0
+aio-pika==9.5.5
 
 # Storage
 minio==7.2.0
