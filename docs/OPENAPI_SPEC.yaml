@@ -1,0 +1,681 @@
+openapi: 3.0.3
+info:
+  title: NetDocGen API
+  description: |
+    Network Documentation Generator API
+    
+    NetDocGen transforms Visio network diagrams into professional documentation.
+  version: 1.0.0
+  contact:
+    name: NetDocGen Support
+    email: support@netdocgen.com
+    url: https://netdocgen.com/support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.netdocgen.com
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: auth
+    description: Authentication operations
+  - name: projects
+    description: Project management
+  - name: documents
+    description: Document processing
+  - name: analysis
+    description: AI enhancement
+  - name: collaboration
+    description: Sharing and collaboration
+
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: User already exists
+
+  /api/auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/projects:
+    get:
+      tags:
+        - projects
+      summary: List all projects
+      parameters:
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+    
+    post:
+      tags:
+        - projects
+      summary: Create new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  /api/projects/{project_id}:
+    get:
+      tags:
+        - projects
+      summary: Get project details
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    put:
+      tags:
+        - projects
+      summary: Update project
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    
+    delete:
+      tags:
+        - projects
+      summary: Delete project
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '204':
+          description: Project deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/documents/upload:
+    post:
+      tags:
+        - documents
+      summary: Upload Visio document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - project_id
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Visio file (.vsdx)
+                project_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/documents/{document_id}:
+    get:
+      tags:
+        - documents
+      summary: Get document details
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      tags:
+        - documents
+      summary: Delete document
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '204':
+          description: Document deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/documents/{document_id}/generate:
+    post:
+      tags:
+        - documents
+      summary: Generate documentation
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRequest'
+      responses:
+        '200':
+          description: Documentation generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  download_url:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/documents/{document_id}/download:
+    get:
+      tags:
+        - documents
+      summary: Download generated documentation
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [html, pdf, docx, markdown]
+      responses:
+        '200':
+          description: Generated document
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+            text/html:
+              schema:
+                type: string
+            text/markdown:
+              schema:
+                type: string
+
+  /api/analysis/documents/{document_id}/enhance:
+    post:
+      tags:
+        - analysis
+      summary: Enhance document with AI
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: AI enhancements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnhancementResult'
+
+  /api/collaboration/share:
+    post:
+      tags:
+        - collaboration
+      summary: Create share link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareLinkCreate'
+      responses:
+        '200':
+          description: Share link created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLink'
+
+  /api/collaboration/comments:
+    get:
+      tags:
+        - collaboration
+      summary: List comments
+      parameters:
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: document_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+    
+    post:
+      tags:
+        - collaboration
+      summary: Create comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '200':
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    DocumentId:
+      name: document_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+
+    UserRegister:
+      type: object
+      required:
+        - email
+        - password
+        - full_name
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        full_name:
+          type: string
+
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          default: bearer
+        user:
+          $ref: '#/components/schemas/User'
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        document_count:
+          type: integer
+
+    ProjectCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+
+    ProjectDetail:
+      allOf:
+        - $ref: '#/components/schemas/Project'
+        - type: object
+          properties:
+            documents:
+              type: array
+              items:
+                $ref: '#/components/schemas/Document'
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        status:
+          type: string
+          enum: [uploaded, parsing, parsed, generating, completed, failed]
+        project_id:
+          type: string
+          format: uuid
+        uploaded_at:
+          type: string
+          format: date-time
+
+    DocumentDetail:
+      allOf:
+        - $ref: '#/components/schemas/Document'
+        - type: object
+          properties:
+            shape_count:
+              type: integer
+            connection_count:
+              type: integer
+            parsed_at:
+              type: string
+              format: date-time
+            completed_at:
+              type: string
+              format: date-time
+            error_message:
+              type: string
+
+    GenerateRequest:
+      type: object
+      required:
+        - format
+      properties:
+        format:
+          type: string
+          enum: [html, pdf, docx, markdown]
+        options:
+          type: object
+          properties:
+            include_ai_enhancements:
+              type: boolean
+              default: false
+            template:
+              type: string
+              default: professional
+
+    EnhancementResult:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        enhancements:
+          type: object
+          properties:
+            executive_summary:
+              type: string
+            glossary:
+              type: array
+              items:
+                type: object
+                properties:
+                  term:
+                    type: string
+                  definition:
+                    type: string
+
+    ShareLinkCreate:
+      type: object
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        permission:
+          type: string
+          enum: [view, edit, admin]
+        expires_at:
+          type: string
+          format: date-time
+        max_uses:
+          type: integer
+        password:
+          type: string
+
+    ShareLink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        token:
+          type: string
+        share_url:
+          type: string
+        permission:
+          type: string
+          enum: [view, edit, admin]
+        expires_at:
+          type: string
+          format: date-time
+        use_count:
+          type: integer
+
+    CommentCreate:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        project_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        parent_id:
+          type: string
+          format: uuid
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        user_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

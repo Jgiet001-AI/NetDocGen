@@ -1,0 +1,35 @@
+{
+  "shapes": [
+    {
+      "id": "shape-1",
+      "name": "Core Router",
+      "type": "router",
+      "shape_type": "router",
+      "properties": {
+        "ip_address": "10.0.0.1",
+        "model": "Cisco ISR 4451"
+      }
+    },
+    {
+      "id": "shape-2",
+      "name": "Distribution Switch",
+      "type": "switch",
+      "shape_type": "switch",
+      "properties": {
+        "ip_address": "10.0.1.1",
+        "model": "Cisco Catalyst 9300"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source_id": "shape-1",
+      "target_id": "shape-2",
+      "connection_type": "fiber",
+      "properties": {
+        "bandwidth": "10Gbps"
+      }
+    }
+  ]
+}

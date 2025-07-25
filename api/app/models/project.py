@@ -26,3 +26,6 @@ class Project(Base):
     # Relationships
     owner = relationship("User", back_populates="projects")
     documents = relationship("Document", back_populates="project", cascade="all, delete-orphan")
+    share_links = relationship("ShareLink", back_populates="project")
+    comments = relationship("Comment", back_populates="project")
+    activities = relationship("Activity", back_populates="project")

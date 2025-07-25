@@ -21,3 +21,7 @@ class User(Base):
     
     # Relationships
     projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
+    documents = relationship("Document", back_populates="user")
+    share_links = relationship("ShareLink", back_populates="creator")
+    comments = relationship("Comment", back_populates="user")
+    activities = relationship("Activity", back_populates="user")

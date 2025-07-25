@@ -48,3 +48,6 @@ class Document(Base):
     # Relationships
     project = relationship("Project", back_populates="documents")
     uploaded_by_user = relationship("User")
+    share_links = relationship("ShareLink", back_populates="document")
+    comments = relationship("Comment", back_populates="document")
+    activities = relationship("Activity", back_populates="document")
