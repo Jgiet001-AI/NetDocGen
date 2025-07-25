@@ -9,6 +9,7 @@ from uuid import UUID
 from app.config import settings
 from app.models.user import User
 from app.schemas.user import UserCreate, TokenData
+from app.metrics import auth_attempts_total, active_users
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -64,11 +65,15 @@ class AuthService:
         user = result.scalar_one_or_none()
         
         if not user:
+            auth_attempts_total.labels(type="login", status="failed").inc()
             return None
             
         if not self.verify_password(password, user.hashed_password):
+            auth_attempts_total.labels(type="login", status="failed").inc()
             return None
-            
+        
+        auth_attempts_total.labels(type="login", status="success").inc()
+        active_users.inc()
         return user
     
     async def create_user(self, db: AsyncSession, user_create: UserCreate) -> User:

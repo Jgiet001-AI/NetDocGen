@@ -11,6 +11,12 @@ from app.models.project import Project
 from app.schemas.document import DocumentCreate, DocumentUpdate
 from app.services.storage import storage_service
 from app.services.message_queue import mq_service
+from app.metrics import (
+    documents_uploaded_total,
+    documents_processed_total,
+    storage_bytes_total,
+    documents_in_queue
+)
 
 # Configure logger
 logger = logging.getLogger(__name__)

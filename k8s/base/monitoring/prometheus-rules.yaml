@@ -1,0 +1,155 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: netdocgen
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: netdocgen
+data:
+  netdocgen-alerts.yml: |
+    groups:
+      - name: netdocgen
+        interval: 30s
+        rules:
+          # API Alerts
+          - alert: APIHighErrorRate
+            expr: |
+              sum(rate(netdocgen_http_requests_total{status="error"}[5m])) /
+              sum(rate(netdocgen_http_requests_total[5m])) > 0.05
+            for: 5m
+            labels:
+              severity: warning
+              service: api
+            annotations:
+              summary: "High error rate on API"
+              description: "Error rate is {{ $value | humanizePercentage }} (> 5%)"
+          
+          - alert: APIHighLatency
+            expr: |
+              histogram_quantile(0.95, sum(rate(netdocgen_http_request_duration_seconds_bucket[5m])) by (le)) > 1.0
+            for: 5m
+            labels:
+              severity: warning
+              service: api
+            annotations:
+              summary: "High API latency"
+              description: "95th percentile latency is {{ $value }}s (> 1s)"
+          
+          - alert: APIDown
+            expr: up{job="netdocgen-api"} == 0
+            for: 2m
+            labels:
+              severity: critical
+              service: api
+            annotations:
+              summary: "API service is down"
+              description: "API service has been down for more than 2 minutes"
+          
+          # Document Processing Alerts
+          - alert: DocumentProcessingBacklog
+            expr: netdocgen_documents_in_queue > 50
+            for: 10m
+            labels:
+              severity: warning
+              service: processing
+            annotations:
+              summary: "High document processing backlog"
+              description: "{{ $value }} documents waiting in queue (> 50)"
+          
+          - alert: DocumentProcessingFailureRate
+            expr: |
+              sum(rate(netdocgen_documents_processed_total{status="error"}[5m])) /
+              sum(rate(netdocgen_documents_processed_total[5m])) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+              service: processing
+            annotations:
+              summary: "High document processing failure rate"
+              description: "Failure rate is {{ $value | humanizePercentage }} (> 10%)"
+          
+          # Authentication Alerts
+          - alert: HighAuthenticationFailureRate
+            expr: |
+              sum(rate(netdocgen_auth_attempts_total{status="failed"}[5m])) /
+              sum(rate(netdocgen_auth_attempts_total[5m])) > 0.5
+            for: 5m
+            labels:
+              severity: warning
+              service: auth
+            annotations:
+              summary: "High authentication failure rate"
+              description: "Auth failure rate is {{ $value | humanizePercentage }} (> 50%)"
+          
+          # Database Alerts
+          - alert: DatabaseConnectionPoolExhausted
+            expr: netdocgen_db_connections_active / 50 > 0.9
+            for: 5m
+            labels:
+              severity: warning
+              service: database
+            annotations:
+              summary: "Database connection pool nearly exhausted"
+              description: "{{ $value | humanizePercentage }} of connections in use"
+          
+          - alert: DatabaseQuerySlowness
+            expr: |
+              histogram_quantile(0.95, sum(rate(netdocgen_db_query_duration_seconds_bucket[5m])) by (le)) > 0.5
+            for: 5m
+            labels:
+              severity: warning
+              service: database
+            annotations:
+              summary: "Database queries are slow"
+              description: "95th percentile query time is {{ $value }}s (> 0.5s)"
+          
+          # Storage Alerts
+          - alert: StorageOperationFailures
+            expr: |
+              sum(rate(netdocgen_storage_operations_total{status="error"}[5m])) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+              service: storage
+            annotations:
+              summary: "Storage operations failing"
+              description: "{{ $value }} storage operations per second are failing"
+          
+          # Infrastructure Alerts
+          - alert: PodMemoryUsageHigh
+            expr: |
+              container_memory_working_set_bytes{namespace="netdocgen", container!=""} /
+              container_spec_memory_limit_bytes{namespace="netdocgen", container!=""} > 0.8
+            for: 5m
+            labels:
+              severity: warning
+              service: infrastructure
+            annotations:
+              summary: "Pod memory usage is high"
+              description: "Pod {{ $labels.pod }} memory usage is {{ $value | humanizePercentage }}"
+          
+          - alert: PodCPUUsageHigh
+            expr: |
+              sum(rate(container_cpu_usage_seconds_total{namespace="netdocgen", container!=""}[5m])) by (pod) /
+              sum(container_spec_cpu_quota{namespace="netdocgen", container!=""}/container_spec_cpu_period{namespace="netdocgen", container!=""}) by (pod) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+              service: infrastructure
+            annotations:
+              summary: "Pod CPU usage is high"
+              description: "Pod {{ $labels.pod }} CPU usage is {{ $value | humanizePercentage }}"
+          
+          - alert: PersistentVolumeSpaceLow
+            expr: |
+              kubelet_volume_stats_available_bytes{namespace="netdocgen"} /
+              kubelet_volume_stats_capacity_bytes{namespace="netdocgen"} < 0.1
+            for: 5m
+            labels:
+              severity: critical
+              service: infrastructure
+            annotations:
+              summary: "Persistent volume space is low"
+              description: "PV {{ $labels.persistentvolumeclaim }} has only {{ $value | humanizePercentage }} space left"
