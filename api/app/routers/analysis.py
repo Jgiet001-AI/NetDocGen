@@ -1,35 +1,36 @@
 """
-Network Analysis API endpoints using LLM
+Document Enhancement API endpoints using LLM
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
 from app.models.document import Document
-from app.services.llm import NetworkAnalyzer
+from app.services.llm.document_assistant import DocumentAssistant
 from app.services.storage import storage_service
 import json
 
 router = APIRouter()
 
-@router.post("/documents/{document_id}/analyze")
-async def analyze_document(
+@router.post("/documents/{document_id}/enhance")
+async def enhance_document(
     document_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
-    Analyze a document using Phi-3 AI
+    Enhance document with AI-generated content
     
-    This endpoint triggers AI analysis of the parsed network data to provide:
-    - Executive summary
-    - Architecture analysis
-    - Security assessment
-    - Optimization suggestions
+    This endpoint uses AI to improve documentation quality by providing:
+    - Professional executive summary
+    - Technical glossary
+    - Enhanced device descriptions
+    - Clear connection explanations
+    - Suggested documentation structure
     """
     # Get document
     document = await db.get(Document, document_id)
@@ -39,14 +40,11 @@ async def analyze_document(
             detail="Document not found"
         )
     
-    # Check ownership
-    # Note: Would need to add project relationship check here
-    
     # Check if document is processed
     if document.status != "completed":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Document must be processed before analysis"
+            detail="Document must be processed before enhancement"
         )
     
     # Get parsed data from storage
@@ -60,46 +58,46 @@ async def analyze_document(
             detail=f"Failed to retrieve parsed data: {str(e)}"
         )
     
-    # Perform analysis
-    analyzer = NetworkAnalyzer()
+    # Enhance documentation
+    assistant = DocumentAssistant()
     try:
-        analysis_results = await analyzer.analyze_network(parsed_data)
+        enhancement_results = await assistant.enhance_documentation(parsed_data)
         
-        # Store analysis results
-        analysis_path = f"analysis/{document_id}/ai_analysis.json"
+        # Store enhancement results
+        enhancement_path = f"analysis/{document_id}/ai_enhancements.json"
         from io import BytesIO
-        analysis_json = json.dumps(analysis_results, indent=2)
+        enhancement_json = json.dumps(enhancement_results, indent=2)
         await storage_service.upload_file(
             bucket_type="analysis",
-            object_name=f"{document_id}/ai_analysis.json",
-            file_data=BytesIO(analysis_json.encode()),
+            object_name=f"{document_id}/ai_enhancements.json",
+            file_data=BytesIO(enhancement_json.encode()),
             content_type="application/json"
         )
         
-        # Update document with analysis status
+        # Update document with enhancement status
         document.ai_analysis_completed = True
         await db.commit()
         
         return {
             "document_id": str(document_id),
-            "analysis": analysis_results,
-            "analysis_path": analysis_path
+            "enhancements": enhancement_results,
+            "enhancement_path": enhancement_path
         }
         
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Analysis failed: {str(e)}"
+            detail=f"Enhancement failed: {str(e)}"
         )
 
-@router.get("/documents/{document_id}/analysis")
-async def get_document_analysis(
+@router.get("/documents/{document_id}/enhancements")
+async def get_document_enhancements(
     document_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
-    Retrieve existing AI analysis for a document
+    Retrieve existing AI enhancements for a document
     """
     # Get document
     document = await db.get(Document, document_id)
@@ -109,32 +107,32 @@ async def get_document_analysis(
             detail="Document not found"
         )
     
-    # Check if analysis exists
+    # Check if enhancements exist
     try:
-        analysis_json = await storage_service.download_file(
+        enhancement_json = await storage_service.download_file(
             "analysis", 
-            f"{document_id}/ai_analysis.json"
+            f"{document_id}/ai_enhancements.json"
         )
-        analysis_data = json.loads(analysis_json.decode('utf-8'))
+        enhancement_data = json.loads(enhancement_json.decode('utf-8'))
         
         return {
             "document_id": str(document_id),
-            "analysis": analysis_data
+            "enhancements": enhancement_data
         }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Analysis not found. Please run analysis first."
+            detail="Enhancements not found. Please run enhancement first."
         )
 
-@router.post("/documents/{document_id}/analyze/summary")
+@router.post("/documents/{document_id}/enhance/summary")
 async def generate_executive_summary(
     document_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, str]:
     """
-    Generate just an executive summary for a document
+    Generate a professional executive summary for the document
     """
     # Get document and verify access
     document = await db.get(Document, document_id)
@@ -159,8 +157,8 @@ async def generate_executive_summary(
         parsed_data = json.loads(parsed_json.decode('utf-8'))
         
         # Generate summary
-        analyzer = NetworkAnalyzer()
-        summary = await analyzer._generate_executive_summary(parsed_data)
+        assistant = DocumentAssistant()
+        summary = await assistant._generate_executive_summary(parsed_data)
         
         return {
             "document_id": str(document_id),
@@ -172,14 +170,14 @@ async def generate_executive_summary(
             detail=f"Failed to generate summary: {str(e)}"
         )
 
-@router.post("/documents/{document_id}/analyze/security")
-async def analyze_security(
+@router.post("/documents/{document_id}/enhance/glossary")
+async def generate_glossary(
     document_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
-    Perform security-focused analysis of the network
+    Generate a technical glossary for the document
     """
     # Get document and verify access
     document = await db.get(Document, document_id)
@@ -203,16 +201,61 @@ async def analyze_security(
         )
         parsed_data = json.loads(parsed_json.decode('utf-8'))
         
-        # Perform security analysis
-        analyzer = NetworkAnalyzer()
-        security_assessment = await analyzer._assess_security(parsed_data)
+        # Generate glossary
+        assistant = DocumentAssistant()
+        glossary = await assistant._generate_glossary(parsed_data)
         
         return {
             "document_id": str(document_id),
-            "security_assessment": security_assessment
+            "glossary": glossary
         }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Security analysis failed: {str(e)}"
+            detail=f"Glossary generation failed: {str(e)}"
+        )
+
+@router.post("/documents/{document_id}/enhance/structure")
+async def suggest_document_structure(
+    document_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Suggest an optimal documentation structure
+    """
+    # Get document and verify access
+    document = await db.get(Document, document_id)
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+    
+    if document.status != "completed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Document must be processed first"
+        )
+    
+    # Get parsed data
+    try:
+        parsed_json = await storage_service.download_file(
+            "parsed", 
+            f"{document_id}/parsed_data.json"
+        )
+        parsed_data = json.loads(parsed_json.decode('utf-8'))
+        
+        # Suggest structure
+        assistant = DocumentAssistant()
+        sections = await assistant._suggest_documentation_structure(parsed_data)
+        
+        return {
+            "document_id": str(document_id),
+            "suggested_sections": sections
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Structure suggestion failed: {str(e)}"
         )

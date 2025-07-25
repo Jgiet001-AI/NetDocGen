@@ -5,6 +5,24 @@ This document outlines how Claude AI can assist with the NetDocGen (Network Docu
 Always refer to the TASKS.md file for the current development tasks and mark it complete when completed. Always ensure that there are no bugs or issues after completing each task.
 DO NOT USE SIMPLIFY OR SIMPLE SCRIPT EVER! This will break the project. DO NOT USE EMOJIS. This will break the project.
 TEMPORARY: Skip the Security Hardening section (SEC-001 through SEC-005) in Phase 6 for now.
+
+## Important: LLM Usage Policy
+The LLM (Phi model via Ollama) is used ONLY for enhancing documentation quality. It does NOT provide network design recommendations.
+
+The LLM assists with:
+- Writing professional executive summaries
+- Generating technical glossaries
+- Enhancing device descriptions for clarity
+- Explaining connection types
+- Suggesting documentation structure and organization
+
+The LLM does NOT:
+- Provide network design recommendations
+- Suggest security improvements to the network
+- Recommend network optimizations
+- Analyze network vulnerabilities
+
+This ensures the tool remains focused on documentation quality rather than network consulting.
 ## Key Assistance Areas
 
 ### 1. Code Development
