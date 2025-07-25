@@ -3,7 +3,7 @@ python-dotenv==1.0.0
 pydantic==2.5.0
 
 # Visio parsing
-vsdx==0.5.1  # Cross-platform VSDX parser
+vsdx==0.5.19  # Cross-platform VSDX parser
 lxml==4.9.3
 deprecation==2.1.0  # Required by vsdx
 # pywin32==306  # Windows only - for COM automation (optional)
