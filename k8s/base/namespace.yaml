@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: netdocgen
+  labels:
+    app.kubernetes.io/name: netdocgen
+    app.kubernetes.io/part-of: netdocgen

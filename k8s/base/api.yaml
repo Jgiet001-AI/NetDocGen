@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: netdocgen
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: netdocgen
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: netdocgen
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: netdocgen
+data:
+  REDIS_URL: "redis://redis:6379"
+  MINIO_ENDPOINT: "minio:9000"
+  RABBITMQ_URL: "amqp://admin:changeme-in-production@rabbitmq:5672"
+  OLLAMA_URL: "http://ollama:11434"
+  DATABASE_URL: "postgresql://postgres:changeme-in-production@postgres:5432/netdocgen"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-secret
+  namespace: netdocgen
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: netdocgen
+type: Opaque
+stringData:
+  SECRET_KEY: "changeme-generate-secure-key-in-production"
+  MINIO_ACCESS_KEY: "minioadmin"
+  MINIO_SECRET_KEY: "changeme-in-production"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: netdocgen
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: netdocgen
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: api
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: netdocgen
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgres 5432; do
+                echo "Waiting for PostgreSQL..."
+                sleep 2
+              done
+        - name: run-migrations
+          image: ghcr.io/jgiet001-ai/netdocgen-api:latest
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef:
+                name: api-config
+            - secretRef:
+                name: api-secret
+      containers:
+        - name: api
+          image: ghcr.io/jgiet001-ai/netdocgen-api:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: api-config
+            - secretRef:
+                name: api-secret
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5

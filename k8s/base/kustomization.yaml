@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: netdocgen
+
+resources:
+  - namespace.yaml
+  - postgres.yaml
+  - redis.yaml
+  - minio.yaml
+  - rabbitmq.yaml
+  - ollama.yaml
+  - api.yaml
+  - parser.yaml
+  - generator.yaml
+  - frontend.yaml
+  - ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: netdocgen

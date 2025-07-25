@@ -1,0 +1,71 @@
+# Reduce resource limits for development
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parser
+spec:
+  template:
+    spec:
+      containers:
+        - name: parser
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generator
+spec:
+  template:
+    spec:
+      containers:
+        - name: generator
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+spec:
+  template:
+    spec:
+      containers:
+        - name: ollama
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"

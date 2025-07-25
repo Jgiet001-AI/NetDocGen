@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: netdocgen-dev
+
+bases:
+  - ../../base
+
+namePrefix: dev-
+nameSuffix: ""
+
+commonLabels:
+  environment: development
+
+patchesStrategicMerge:
+  - patches/resource-limits.yaml
+  - patches/replicas.yaml
+  - patches/ingress.yaml
+
+configMapGenerator:
+  - name: api-config
+    behavior: merge
+    literals:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+
+secretGenerator:
+  - name: postgres-secret
+    behavior: replace
+    literals:
+      - POSTGRES_PASSWORD=dev-password
+  - name: minio-secret
+    behavior: replace
+    literals:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+  - name: api-secret
+    behavior: merge
+    literals:
+      - SECRET_KEY=dev-secret-key-not-for-production

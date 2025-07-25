@@ -1,0 +1,31 @@
+# Reduce replicas for development
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 1
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parser
+spec:
+  replicas: 1
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generator
+spec:
+  replicas: 1
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1

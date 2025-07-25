@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: netdocgen
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/part-of: netdocgen
+spec:
+  ports:
+    - port: 11434
+      targetPort: 11434
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-pvc
+  namespace: netdocgen
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/part-of: netdocgen
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: netdocgen
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/part-of: netdocgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+      app.kubernetes.io/component: ai
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+        app.kubernetes.io/component: ai
+        app.kubernetes.io/part-of: netdocgen
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - containerPort: 11434
+          env:
+            - name: OLLAMA_KEEP_ALIVE
+              value: "24h"
+            - name: OLLAMA_HOST
+              value: "0.0.0.0"
+          volumeMounts:
+            - name: ollama-storage
+              mountPath: /root/.ollama
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      initContainers:
+        - name: download-model
+          image: ollama/ollama:latest
+          command:
+            - sh
+            - -c
+            - |
+              ollama serve &
+              sleep 10
+              ollama pull phi
+              pkill ollama
+          volumeMounts:
+            - name: ollama-storage
+              mountPath: /root/.ollama
+      volumes:
+        - name: ollama-storage
+          persistentVolumeClaim:
+            claimName: ollama-pvc

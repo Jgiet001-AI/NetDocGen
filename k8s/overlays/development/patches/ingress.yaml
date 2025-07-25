@@ -1,0 +1,30 @@
+# Development ingress configuration
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: netdocgen-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # Remove cert-manager for local development
+    cert-manager.io/cluster-issuer: ""
+spec:
+  # Remove TLS for local development
+  tls: []
+  rules:
+    - host: netdocgen.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 8000
