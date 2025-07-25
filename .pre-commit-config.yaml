@@ -21,3 +21,13 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
+
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        entry: bash -c 'cd api && pytest tests/ --cov=app --cov-fail-under=0 -x -q'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]

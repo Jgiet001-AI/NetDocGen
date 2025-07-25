@@ -48,6 +48,84 @@ NetDocGen is a comprehensive solution for automatically generating network docum
 
 ## Quick Start
 
+### Using Docker Compose
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Jgiet001-AI/NetDocGen.git
+   cd NetDocGen
+   ```
+
+2. Copy environment example:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Start all services:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. Initialize Ollama (for AI features):
+   ```bash
+   ./init-ollama.sh
+   ```
+
+5. Access the application:
+   - Frontend: http://localhost:3000
+   - API Documentation: http://localhost:8000/docs
+   - MinIO Console: http://localhost:9001
+   - RabbitMQ Management: http://localhost:15672
+
+## Testing
+
+The project includes comprehensive unit and integration tests for all services.
+
+### Running Tests
+
+#### API Tests
+```bash
+cd api
+pytest tests/ -v --cov=app --cov-report=html
+```
+
+#### Parser Tests
+```bash
+cd parser
+pytest tests/ -v --cov=src --cov-report=html
+```
+
+#### Generator Tests
+```bash
+cd generator
+pytest tests/ -v --cov=src --cov-report=html
+```
+
+### Test Coverage
+
+We maintain a minimum of 80% code coverage across all services. Coverage reports are generated in HTML format and can be viewed by opening `htmlcov/index.html` in your browser.
+
+### CI/CD
+
+The project uses GitHub Actions for continuous integration:
+- Automated testing on every pull request
+- Code quality checks (Black, isort, Flake8, MyPy)
+- Security scanning with Trivy and Bandit
+- Docker image building and publishing
+- Test coverage reporting with Codecov
+
+### Pre-commit Hooks
+
+Install pre-commit hooks for local development:
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+This will run code formatters and linters before each commit.
+
+## Development
+
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
