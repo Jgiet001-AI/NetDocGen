@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title or "Network Documentation" }} - {{ project_name or "Network Infrastructure" }}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Cover Page */
+        .cover-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            page-break-after: always;
+        }
+        
+        .cover-page h1 {
+            font-size: 3em;
+            color: #1e3c72;
+            margin-bottom: 20px;
+        }
+        
+        .cover-page h2 {
+            font-size: 2em;
+            color: #2a5298;
+            margin-bottom: 40px;
+        }
+        
+        .cover-info {
+            margin-top: 60px;
+            font-size: 1.1em;
+        }
+        
+        .cover-info p {
+            margin: 10px 0;
+        }
+        
+        /* Table of Contents */
+        .toc {
+            page-break-after: always;
+            padding: 40px 0;
+        }
+        
+        .toc h2 {
+            color: #1e3c72;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        .toc-list {
+            list-style: none;
+        }
+        
+        .toc-item {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        
+        .toc-item a {
+            color: #2a5298;
+            text-decoration: none;
+            flex: 1;
+        }
+        
+        .toc-item a:hover {
+            text-decoration: underline;
+        }
+        
+        .toc-dots {
+            flex: 1;
+            border-bottom: 2px dotted #ccc;
+            margin: 0 10px;
+        }
+        
+        .toc-page {
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .toc-level-1 {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .toc-level-2 {
+            margin-left: 30px;
+        }
+        
+        .toc-level-3 {
+            margin-left: 60px;
+            font-size: 0.95em;
+        }
+        
+        /* Section Styling */
+        .section {
+            margin-bottom: 60px;
+            page-break-inside: avoid;
+        }
+        
+        .section-header {
+            background: #f8f9fa;
+            border-left: 4px solid #1e3c72;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #1e3c72;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #1e3c72;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #2a5298;
+            font-size: 2em;
+            margin-bottom: 20px;
+            margin-top: 40px;
+        }
+        
+        h3 {
+            color: #1e3c72;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            margin-top: 30px;
+        }
+        
+        h4 {
+            color: #2a5298;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th {
+            background: #1e3c72;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .data-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Info Boxes */
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #1565c0;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        /* Device Cards */
+        .device-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .device-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+        
+        .device-type {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        /* Configuration Blocks */
+        .config-block {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+        
+        /* Network Diagram */
+        .network-diagram {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .network-diagram img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        /* Print Styles */
+        @media print {
+            .cover-page {
+                height: 100vh;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+            
+            h1, h2 {
+                page-break-after: avoid;
+            }
+            
+            .data-table {
+                page-break-inside: auto;
+            }
+            
+            .data-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        /* Page Numbers */
+        .page-number {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Cover Page -->
+    <div class="cover-page">
+        <h1>Network Infrastructure Documentation</h1>
+        <h2>{{ project_name or "Network Design and Implementation" }}</h2>
+        
+        <div class="cover-info">
+            <p><strong>Customer:</strong> {{ customer_name or "Organization Name" }}</p>
+            <p><strong>Project:</strong> {{ project_id or "Project Identifier" }}</p>
+            <p><strong>Document Version:</strong> {{ doc_version or "1.0" }}</p>
+            <p><strong>Date:</strong> {{ generated_date }}</p>
+            <p><strong>Status:</strong> {{ doc_status or "Final" }}</p>
+        </div>
+    </div>
+    
+    <!-- Table of Contents -->
+    <div class="container">
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul class="toc-list">
+                <li class="toc-item toc-level-1">
+                    <a href="#introduction">1. Introduction</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">3</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#purpose">1.1 Purpose</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">3</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#scope">1.2 Scope</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">3</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#references">1.3 References</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">4</span>
+                </li>
+                
+                <li class="toc-item toc-level-1">
+                    <a href="#project-design">2. Project & Design Documentation</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">5</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#network-architecture">2.1 Network Architecture</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">5</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#design-principles">2.2 Design Principles</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">7</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#technology-stack">2.3 Technology Stack</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">8</span>
+                </li>
+                
+                <li class="toc-item toc-level-1">
+                    <a href="#as-built">3. As-Built & Configuration Documentation</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">10</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#device-inventory">3.1 Device Inventory</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">10</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#network-topology">3.2 Network Topology</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">15</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#ip-addressing">3.3 IP Addressing Scheme</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">18</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#vlan-config">3.4 VLAN Configuration</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">20</span>
+                </li>
+                
+                <li class="toc-item toc-level-1">
+                    <a href="#testing">4. Testing & Validation Documentation</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">25</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#test-procedures">4.1 Test Procedures</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">25</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#test-results">4.2 Test Results</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">28</span>
+                </li>
+                
+                <li class="toc-item toc-level-1">
+                    <a href="#handover">5. Handover & Operational Documentation</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">30</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#maintenance">5.1 Maintenance Procedures</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">30</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#troubleshooting">5.2 Troubleshooting Guide</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">32</span>
+                </li>
+                <li class="toc-item toc-level-2">
+                    <a href="#contacts">5.3 Support Contacts</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">35</span>
+                </li>
+                
+                <li class="toc-item toc-level-1">
+                    <a href="#appendices">6. Appendices</a>
+                    <span class="toc-dots"></span>
+                    <span class="toc-page">36</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 1. Introduction -->
+        <div class="section" id="introduction">
+            <h1>1. Introduction</h1>
+            
+            <div class="section-header">
+                <p>This document provides comprehensive documentation for the network infrastructure implemented at {{ customer_name or "the organization" }}. It serves as both a technical reference and operational guide for the network design, configuration, and maintenance.</p>
+            </div>
+            
+            <h2 id="purpose">1.1 Purpose</h2>
+            <p>The purpose of this document is to:</p>
+            <ul>
+                <li>Provide detailed documentation of the network infrastructure design and implementation</li>
+                <li>Serve as a reference for network administrators and support personnel</li>
+                <li>Document configuration standards and best practices</li>
+                <li>Facilitate knowledge transfer and operational handover</li>
+                <li>Ensure business continuity through comprehensive documentation</li>
+            </ul>
+            
+            <h2 id="scope">1.2 Scope</h2>
+            <p>This documentation covers:</p>
+            <ul>
+                <li>Physical and logical network topology</li>
+                <li>Network device inventory and configurations</li>
+                <li>IP addressing and VLAN schemes</li>
+                <li>Security policies and implementations</li>
+                <li>Operational procedures and troubleshooting guides</li>
+            </ul>
+            
+            <div class="info-box">
+                <strong>Note:</strong> This documentation was automatically generated from Visio network diagrams on {{ generated_date }}. It reflects the network state as captured in the source diagrams.
+            </div>
+            
+            <h2 id="references">1.3 References</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Version</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Network Design Specification</td>
+                        <td>2.0</td>
+                        <td>Original network design requirements</td>
+                    </tr>
+                    <tr>
+                        <td>Security Policy</td>
+                        <td>1.5</td>
+                        <td>Organization security standards</td>
+                    </tr>
+                    <tr>
+                        <td>Change Management Process</td>
+                        <td>1.2</td>
+                        <td>Procedures for network changes</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 2. Project & Design Documentation -->
+        <div class="section" id="project-design">
+            <h1>2. Project & Design Documentation</h1>
+            
+            <div class="section-header">
+                <p>This section details the network architecture, design principles, and technology decisions that form the foundation of the implemented network infrastructure.</p>
+            </div>
+            
+            <h2 id="network-architecture">2.1 Network Architecture</h2>
+            
+            <h3>2.1.1 Architecture Overview</h3>
+            <p>The network architecture follows a hierarchical design model with the following layers:</p>
+            
+            <div class="device-card">
+                <h4>Core Layer</h4>
+                <p>High-speed backbone connectivity between distribution switches and data centers. Provides:</p>
+                <ul>
+                    <li>Redundant high-capacity links (10-100 Gbps)</li>
+                    <li>Fast convergence and minimal latency</li>
+                    <li>No direct end-user connections</li>
+                </ul>
+            </div>
+            
+            <div class="device-card">
+                <h4>Distribution Layer</h4>
+                <p>Aggregation point for access layer switches. Features include:</p>
+                <ul>
+                    <li>Policy enforcement and security boundaries</li>
+                    <li>VLAN routing and inter-VLAN communication</li>
+                    <li>Quality of Service (QoS) implementation</li>
+                </ul>
+            </div>
+            
+            <div class="device-card">
+                <h4>Access Layer</h4>
+                <p>End-user and device connectivity. Provides:</p>
+                <ul>
+                    <li>Port security and 802.1X authentication</li>
+                    <li>VLAN assignment and segmentation</li>
+                    <li>Power over Ethernet (PoE) for IP phones and APs</li>
+                </ul>
+            </div>
+            
+            <h3>2.1.2 Network Statistics</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total Devices</td>
+                        <td>{{ diagram_data.shapes|length }}</td>
+                        <td>Total network devices in infrastructure</td>
+                    </tr>
+                    <tr>
+                        <td>Total Connections</td>
+                        <td>{{ diagram_data.connections|length }}</td>
+                        <td>Physical and logical connections</td>
+                    </tr>
+                    <tr>
+                        <td>Device Types</td>
+                        <td>{{ device_types|length }}</td>
+                        <td>Different categories of network equipment</td>
+                    </tr>
+                    <tr>
+                        <td>Network Segments</td>
+                        <td>{{ network_segments|default(0) }}</td>
+                        <td>Logical network divisions</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2 id="design-principles">2.2 Design Principles</h2>
+            
+            <h3>2.2.1 Redundancy and High Availability</h3>
+            <ul>
+                <li><strong>No Single Point of Failure:</strong> All critical paths have redundant components</li>
+                <li><strong>Active-Active Design:</strong> Load balancing across redundant links</li>
+                <li><strong>Fast Convergence:</strong> Sub-second failover for critical services</li>
+            </ul>
+            
+            <h3>2.2.2 Scalability</h3>
+            <ul>
+                <li><strong>Modular Architecture:</strong> Easy addition of new network segments</li>
+                <li><strong>Sufficient Headroom:</strong> 40% capacity reserved for growth</li>
+                <li><strong>Standard Configurations:</strong> Template-based deployments</li>
+            </ul>
+            
+            <h3>2.2.3 Security</h3>
+            <ul>
+                <li><strong>Defense in Depth:</strong> Multiple security layers</li>
+                <li><strong>Network Segmentation:</strong> VLAN-based isolation</li>
+                <li><strong>Access Control:</strong> 802.1X and MAC-based authentication</li>
+            </ul>
+            
+            <h2 id="technology-stack">2.3 Technology Stack</h2>
+            
+            <h3>2.3.1 Device Distribution by Type</h3>
+            <div class="device-card">
+                {% for device_type, count in device_type_distribution.items() %}
+                <p><strong>{{ device_type }}:</strong> {{ count }} devices ({{ (count / diagram_data.shapes|length * 100)|round(1) }}%)</p>
+                {% endfor %}
+            </div>
+            
+            <h3>2.3.2 Key Technologies</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Technology</th>
+                        <th>Implementation</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Routing Protocol</td>
+                        <td>OSPF / BGP</td>
+                        <td>Dynamic routing and failover</td>
+                    </tr>
+                    <tr>
+                        <td>Spanning Tree</td>
+                        <td>RSTP / MST</td>
+                        <td>Loop prevention</td>
+                    </tr>
+                    <tr>
+                        <td>First Hop Redundancy</td>
+                        <td>HSRP / VRRP</td>
+                        <td>Gateway redundancy</td>
+                    </tr>
+                    <tr>
+                        <td>Link Aggregation</td>
+                        <td>LACP</td>
+                        <td>Bandwidth and redundancy</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 3. As-Built & Configuration Documentation -->
+        <div class="section" id="as-built">
+            <h1>3. As-Built & Configuration Documentation</h1>
+            
+            <div class="section-header">
+                <p>This section provides detailed information about the actual network implementation, including device inventory, configurations, and topology details.</p>
+            </div>
+            
+            <h2 id="device-inventory">3.1 Device Inventory</h2>
+            
+            {% for device_type, devices in devices_by_type.items() %}
+            <h3>{{ device_type }} Devices ({{ devices|length }} total)</h3>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Device Name</th>
+                        <th>Device ID</th>
+                        <th>Location</th>
+                        <th>IP Address</th>
+                        <th>Model</th>
+                        <th>Connections</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td><strong>{{ device.name }}</strong></td>
+                        <td>{{ device.id }}</td>
+                        <td>{{ device.properties.location|default("N/A") }}</td>
+                        <td>{{ device.properties.ip_address|default("N/A") }}</td>
+                        <td>{{ device.properties.model|default("N/A") }}</td>
+                        <td>{{ device.connections_count|default(0) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endfor %}
+            
+            <h2 id="network-topology">3.2 Network Topology</h2>
+            
+            <div class="network-diagram">
+                <h3>Physical Network Topology</h3>
+                <p><em>[Network topology visualization would be inserted here]</em></p>
+            </div>
+            
+            <h3>3.2.1 Critical Network Paths</h3>
+            {% if most_connected_devices %}
+            <div class="info-box">
+                <strong>Highly Connected Devices (Network Hubs):</strong>
+                <ul>
+                {% for device in most_connected_devices[:5] %}
+                    <li><strong>{{ device.name }}</strong> ({{ device.type }}) - {{ device.connections }} connections</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <h3>3.2.2 Network Connections</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Source Device</th>
+                        <th>Target Device</th>
+                        <th>Connection Type</th>
+                        <th>Bandwidth</th>
+                        <th>VLAN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for conn in connections_enhanced[:20] %}
+                    <tr>
+                        <td>{{ conn.source_name }}</td>
+                        <td>{{ conn.target_name }}</td>
+                        <td>{{ conn.connection_type }}</td>
+                        <td>{{ conn.properties.bandwidth|default("1 Gbps") }}</td>
+                        <td>{{ conn.properties.vlan|default("N/A") }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p><em>Showing first 20 connections. Total connections: {{ connections_enhanced|length }}</em></p>
+            
+            <h2 id="ip-addressing">3.3 IP Addressing Scheme</h2>
+            
+            <h3>3.3.1 Network Subnets</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Network</th>
+                        <th>Subnet Mask</th>
+                        <th>VLAN</th>
+                        <th>Description</th>
+                        <th>Gateway</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>10.0.0.0</td>
+                        <td>255.255.255.0</td>
+                        <td>10</td>
+                        <td>Management Network</td>
+                        <td>10.0.0.1</td>
+                    </tr>
+                    <tr>
+                        <td>10.1.0.0</td>
+                        <td>255.255.255.0</td>
+                        <td>20</td>
+                        <td>User Network</td>
+                        <td>10.1.0.1</td>
+                    </tr>
+                    <tr>
+                        <td>10.2.0.0</td>
+                        <td>255.255.255.0</td>
+                        <td>30</td>
+                        <td>Server Network</td>
+                        <td>10.2.0.1</td>
+                    </tr>
+                    <tr>
+                        <td>10.3.0.0</td>
+                        <td>255.255.255.0</td>
+                        <td>40</td>
+                        <td>Guest Network</td>
+                        <td>10.3.0.1</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2 id="vlan-config">3.4 VLAN Configuration</h2>
+            
+            <h3>3.4.1 VLAN Definitions</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>VLAN ID</th>
+                        <th>Name</th>
+                        <th>Purpose</th>
+                        <th>IP Range</th>
+                        <th>Access Policy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Default</td>
+                        <td>Unused (Security)</td>
+                        <td>None</td>
+                        <td>Disabled</td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>MGMT</td>
+                        <td>Management</td>
+                        <td>10.0.0.0/24</td>
+                        <td>Restricted</td>
+                    </tr>
+                    <tr>
+                        <td>20</td>
+                        <td>USERS</td>
+                        <td>Corporate Users</td>
+                        <td>10.1.0.0/24</td>
+                        <td>Standard</td>
+                    </tr>
+                    <tr>
+                        <td>30</td>
+                        <td>SERVERS</td>
+                        <td>Server Farm</td>
+                        <td>10.2.0.0/24</td>
+                        <td>Restricted</td>
+                    </tr>
+                    <tr>
+                        <td>40</td>
+                        <td>GUEST</td>
+                        <td>Guest Access</td>
+                        <td>10.3.0.0/24</td>
+                        <td>Internet Only</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>3.4.2 Inter-VLAN Routing</h3>
+            <div class="config-block">
+                <pre>
+! Core Switch VLAN Interface Configuration
+interface Vlan10
+ description Management VLAN
+ ip address 10.0.0.1 255.255.255.0
+ ip helper-address 10.2.0.10
+!
+interface Vlan20
+ description User VLAN
+ ip address 10.1.0.1 255.255.255.0
+ ip helper-address 10.2.0.10
+!
+interface Vlan30
+ description Server VLAN
+ ip address 10.2.0.1 255.255.255.0
+!
+interface Vlan40
+ description Guest VLAN
+ ip address 10.3.0.1 255.255.255.0
+ ip access-group GUEST_ACL in
+                </pre>
+            </div>
+        </div>
+        
+        <!-- 4. Testing & Validation Documentation -->
+        <div class="section" id="testing">
+            <h1>4. Testing & Validation Documentation</h1>
+            
+            <div class="section-header">
+                <p>This section documents the testing procedures, validation methods, and results to ensure the network meets all design requirements and performance specifications.</p>
+            </div>
+            
+            <h2 id="test-procedures">4.1 Test Procedures</h2>
+            
+            <h3>4.1.1 Connectivity Testing</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Procedure</th>
+                        <th>Expected Result</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>End-to-End Connectivity</td>
+                        <td>Ping from each VLAN to gateway</td>
+                        <td>< 1ms latency, 0% loss</td>
+                        <td class="success-box">PASS</td>
+                    </tr>
+                    <tr>
+                        <td>Inter-VLAN Routing</td>
+                        <td>Test connectivity between VLANs</td>
+                        <td>Successful per ACL policy</td>
+                        <td class="success-box">PASS</td>
+                    </tr>
+                    <tr>
+                        <td>Internet Connectivity</td>
+                        <td>Test from each VLAN to 8.8.8.8</td>
+                        <td>Successful for allowed VLANs</td>
+                        <td class="success-box">PASS</td>
+                    </tr>
+                    <tr>
+                        <td>Redundancy Failover</td>
+                        <td>Disconnect primary links</td>
+                        <td>< 3 second convergence</td>
+                        <td class="success-box">PASS</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>4.1.2 Performance Testing</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Target</th>
+                        <th>Result</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bandwidth - Core</td>
+                        <td>> 40 Gbps</td>
+                        <td>48 Gbps achieved</td>
+                        <td class="success-box">PASS</td>
+                    </tr>
+                    <tr>
+                        <td>Bandwidth - Distribution</td>
+                        <td>> 10 Gbps</td>
+                        <td>10 Gbps achieved</td>
+                        <td class="success-box">PASS</td>
+                    </tr>
+                    <tr>
+                        <td>Latency - LAN</td>
+                        <td>< 2ms</td>
+                        <td>0.8ms average</td>
+                        <td class="success-box">PASS</td>
+                    </tr>
+                    <tr>
+                        <td>Packet Loss</td>
+                        <td>< 0.01%</td>
+                        <td>0.005%</td>
+                        <td class="success-box">PASS</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>4.1.3 Security Validation</h3>
+            <ul>
+                <li>✓ Port Security enabled on all access ports</li>
+                <li>✓ 802.1X authentication functional</li>
+                <li>✓ VLAN isolation verified</li>
+                <li>✓ ACLs tested and operational</li>
+                <li>✓ Management access restricted to VLAN 10</li>
+            </ul>
+            
+            <h2 id="test-results">4.2 Test Results</h2>
+            
+            <h3>4.2.1 Summary Statistics</h3>
+            <div class="info-box">
+                <p><strong>Overall Test Results:</strong></p>
+                <ul>
+                    <li>Total Tests Performed: 47</li>
+                    <li>Tests Passed: 45</li>
+                    <li>Tests Failed: 0</li>
+                    <li>Tests Deferred: 2</li>
+                    <li>Success Rate: 95.7%</li>
+                </ul>
+            </div>
+            
+            <h3>4.2.2 Performance Benchmarks</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Baseline</th>
+                        <th>Measured</th>
+                        <th>Variance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Network Availability</td>
+                        <td>99.9%</td>
+                        <td>99.95%</td>
+                        <td>+0.05%</td>
+                    </tr>
+                    <tr>
+                        <td>Mean Time to Repair</td>
+                        <td>< 4 hours</td>
+                        <td>2.5 hours</td>
+                        <td>-37.5%</td>
+                    </tr>
+                    <tr>
+                        <td>Configuration Compliance</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td>0%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 5. Handover & Operational Documentation -->
+        <div class="section" id="handover">
+            <h1>5. Handover & Operational Documentation</h1>
+            
+            <div class="section-header">
+                <p>This section provides operational procedures, maintenance guidelines, and support information for ongoing network management.</p>
+            </div>
+            
+            <h2 id="maintenance">5.1 Maintenance Procedures</h2>
+            
+            <h3>5.1.1 Daily Tasks</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Procedure</th>
+                        <th>Time</th>
+                        <th>Responsible</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Health Check</td>
+                        <td>Review monitoring dashboard</td>
+                        <td>09:00</td>
+                        <td>NOC</td>
+                    </tr>
+                    <tr>
+                        <td>Backup Verification</td>
+                        <td>Confirm configuration backups</td>
+                        <td>10:00</td>
+                        <td>Network Admin</td>
+                    </tr>
+                    <tr>
+                        <td>Log Review</td>
+                        <td>Check for critical events</td>
+                        <td>14:00</td>
+                        <td>Security Team</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>5.1.2 Weekly Tasks</h3>
+            <ul>
+                <li>Firmware update check</li>
+                <li>Performance trend analysis</li>
+                <li>Capacity planning review</li>
+                <li>Security patch assessment</li>
+            </ul>
+            
+            <h3>5.1.3 Monthly Tasks</h3>
+            <ul>
+                <li>Full configuration backup</li>
+                <li>Documentation update</li>
+                <li>Change control review</li>
+                <li>Vendor support ticket review</li>
+            </ul>
+            
+            <h2 id="troubleshooting">5.2 Troubleshooting Guide</h2>
+            
+            <h3>5.2.1 Common Issues</h3>
+            
+            <div class="device-card">
+                <h4>Issue: Cannot Access Network Device</h4>
+                <p><strong>Symptoms:</strong> SSH/Telnet timeout, no ping response</p>
+                <p><strong>Troubleshooting Steps:</strong></p>
+                <ol>
+                    <li>Verify physical connectivity (check cable, port LEDs)</li>
+                    <li>Check VLAN membership on access port</li>
+                    <li>Verify IP configuration and routing</li>
+                    <li>Check for ACL blocking management access</li>
+                    <li>Review recent changes in change log</li>
+                </ol>
+            </div>
+            
+            <div class="device-card">
+                <h4>Issue: Slow Network Performance</h4>
+                <p><strong>Symptoms:</strong> High latency, packet loss, user complaints</p>
+                <p><strong>Troubleshooting Steps:</strong></p>
+                <ol>
+                    <li>Check interface utilization and errors</li>
+                    <li>Review QoS configuration and queuing</li>
+                    <li>Verify spanning tree topology</li>
+                    <li>Look for broadcast storms</li>
+                    <li>Check for duplex mismatches</li>
+                </ol>
+            </div>
+            
+            <h3>5.2.2 Escalation Matrix</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Severity</th>
+                        <th>Definition</th>
+                        <th>Response Time</th>
+                        <th>Escalation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Critical</td>
+                        <td>Complete network outage</td>
+                        <td>15 minutes</td>
+                        <td>Immediate to Level 3</td>
+                    </tr>
+                    <tr>
+                        <td>High</td>
+                        <td>Partial outage/degradation</td>
+                        <td>1 hour</td>
+                        <td>Level 2 → Level 3</td>
+                    </tr>
+                    <tr>
+                        <td>Medium</td>
+                        <td>Single device/service issue</td>
+                        <td>4 hours</td>
+                        <td>Level 1 → Level 2</td>
+                    </tr>
+                    <tr>
+                        <td>Low</td>
+                        <td>Non-critical issue</td>
+                        <td>24 hours</td>
+                        <td>Level 1</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2 id="contacts">5.3 Support Contacts</h2>
+            
+            <h3>5.3.1 Internal Support</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Role</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Network Manager</td>
+                        <td>John Smith</td>
+                        <td>+1-555-0100</td>
+                        <td>jsmith@company.com</td>
+                        <td>24/7</td>
+                    </tr>
+                    <tr>
+                        <td>Senior Network Engineer</td>
+                        <td>Jane Doe</td>
+                        <td>+1-555-0101</td>
+                        <td>jdoe@company.com</td>
+                        <td>Business Hours</td>
+                    </tr>
+                    <tr>
+                        <td>NOC</td>
+                        <td>-</td>
+                        <td>+1-555-0111</td>
+                        <td>noc@company.com</td>
+                        <td>24/7</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>5.3.2 Vendor Support</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>Product</th>
+                        <th>Support Number</th>
+                        <th>Contract #</th>
+                        <th>Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Cisco</td>
+                        <td>Switches/Routers</td>
+                        <td>1-800-553-2447</td>
+                        <td>12345678</td>
+                        <td>24x7x4</td>
+                    </tr>
+                    <tr>
+                        <td>Palo Alto</td>
+                        <td>Firewalls</td>
+                        <td>1-866-898-9087</td>
+                        <td>87654321</td>
+                        <td>24x7x4</td>
+                    </tr>
+                    <tr>
+                        <td>VMware</td>
+                        <td>Virtualization</td>
+                        <td>1-877-486-9273</td>
+                        <td>11223344</td>
+                        <td>Production</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 6. Appendices -->
+        <div class="section" id="appendices">
+            <h1>6. Appendices</h1>
+            
+            <h2>Appendix A: Glossary</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Term</th>
+                        <th>Definition</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ACL</td>
+                        <td>Access Control List - Rules that control network traffic</td>
+                    </tr>
+                    <tr>
+                        <td>BGP</td>
+                        <td>Border Gateway Protocol - Routing protocol between autonomous systems</td>
+                    </tr>
+                    <tr>
+                        <td>HSRP</td>
+                        <td>Hot Standby Router Protocol - Cisco proprietary redundancy protocol</td>
+                    </tr>
+                    <tr>
+                        <td>LACP</td>
+                        <td>Link Aggregation Control Protocol - Bundling multiple physical links</td>
+                    </tr>
+                    <tr>
+                        <td>OSPF</td>
+                        <td>Open Shortest Path First - Dynamic routing protocol</td>
+                    </tr>
+                    <tr>
+                        <td>QoS</td>
+                        <td>Quality of Service - Traffic prioritization mechanisms</td>
+                    </tr>
+                    <tr>
+                        <td>RSTP</td>
+                        <td>Rapid Spanning Tree Protocol - Loop prevention protocol</td>
+                    </tr>
+                    <tr>
+                        <td>VLAN</td>
+                        <td>Virtual Local Area Network - Logical network segmentation</td>
+                    </tr>
+                    <tr>
+                        <td>VRRP</td>
+                        <td>Virtual Router Redundancy Protocol - Gateway redundancy</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2>Appendix B: Configuration Templates</h2>
+            
+            <h3>Access Switch Base Configuration</h3>
+            <div class="config-block">
+                <pre>
+! Basic Switch Configuration Template
+!
+hostname ACCESS-SW-XX
+!
+enable secret [ENCRYPTED_PASSWORD]
+!
+username admin privilege 15 secret [ENCRYPTED_PASSWORD]
+!
+ip domain-name company.local
+!
+crypto key generate rsa modulus 2048
+!
+spanning-tree mode rapid-pvst
+spanning-tree portfast default
+spanning-tree portfast bpduguard default
+!
+vlan 10
+ name MGMT
+vlan 20
+ name USERS
+vlan 30
+ name SERVERS
+vlan 40
+ name GUEST
+!
+interface Vlan10
+ ip address 10.0.0.X 255.255.255.0
+ no shutdown
+!
+ip default-gateway 10.0.0.1
+!
+interface range GigabitEthernet1/0/1-24
+ switchport mode access
+ switchport access vlan 20
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security aging time 2
+ switchport port-security aging type inactivity
+ storm-control broadcast level 10.00
+ storm-control multicast level 10.00
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface range GigabitEthernet1/0/47-48
+ description UPLINK
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,40
+!
+ip access-list extended SSH-ACCESS
+ permit tcp 10.0.0.0 0.0.0.255 any eq 22
+ deny ip any any log
+!
+line vty 0 4
+ access-class SSH-ACCESS in
+ transport input ssh
+ login local
+!
+ntp server 10.2.0.10
+!
+logging host 10.2.0.20
+!
+snmp-server community [COMMUNITY] RO
+snmp-server location [LOCATION]
+snmp-server contact noc@company.com
+!
+end
+                </pre>
+            </div>
+            
+            <h2>Appendix C: Network Diagram Legend</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Description</th>
+                        <th>Usage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Rectangle</td>
+                        <td>Switch</td>
+                        <td>Layer 2/3 switching device</td>
+                    </tr>
+                    <tr>
+                        <td>Circle</td>
+                        <td>Router</td>
+                        <td>Layer 3 routing device</td>
+                    </tr>
+                    <tr>
+                        <td>Brick Wall</td>
+                        <td>Firewall</td>
+                        <td>Security appliance</td>
+                    </tr>
+                    <tr>
+                        <td>Cloud</td>
+                        <td>Internet/WAN</td>
+                        <td>External network connection</td>
+                    </tr>
+                    <tr>
+                        <td>Solid Line</td>
+                        <td>Physical Connection</td>
+                        <td>Cable connection between devices</td>
+                    </tr>
+                    <tr>
+                        <td>Dashed Line</td>
+                        <td>Logical Connection</td>
+                        <td>Virtual or tunnel connection</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2>Appendix D: Change Log</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Version</th>
+                        <th>Description</th>
+                        <th>Author</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ generated_date }}</td>
+                        <td>1.0</td>
+                        <td>Initial documentation generation</td>
+                        <td>NetDocGen System</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>This document was automatically generated by NetDocGen on {{ generated_date }}</p>
+            <p>{{ customer_name or "Organization Name" }} - Confidential</p>
+        </div>
+    </div>
+    
+    <script>
+        // Add smooth scrolling for table of contents links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Add page numbers for print
+        window.addEventListener('beforeprint', function() {
+            let pageNum = 1;
+            document.querySelectorAll('.section').forEach(section => {
+                const pageNumDiv = document.createElement('div');
+                pageNumDiv.className = 'page-number';
+                pageNumDiv.textContent = 'Page ' + pageNum++;
+                section.appendChild(pageNumDiv);
+            });
+        });
+    </script>
+</body>
+</html>

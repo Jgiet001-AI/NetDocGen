@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: white;
+            border: none;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab:hover {
+            background: #f8f9fa;
+        }
+        
+        .nav-tab.active {
+            background: #1e3c72;
+            color: white;
+        }
+        
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 400;
+        }
+        
+        .card h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            font-weight: 500;
+        }
+        
+        /* Overview Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            font-size: 2.5em;
+            font-weight: 300;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .stat-card p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        /* Device Inventory */
+        .device-categories {
+            margin-bottom: 30px;
+        }
+        
+        .category-section {
+            margin-bottom: 40px;
+        }
+        
+        .category-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-header h3 {
+            margin: 0;
+            color: #2a5298;
+        }
+        
+        .device-count {
+            background: #1e3c72;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .device-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .device-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .device-name {
+            font-size: 1.2em;
+            font-weight: 500;
+            color: #1e3c72;
+        }
+        
+        .device-type-badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .device-properties {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .property-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .property-key {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .property-value {
+            color: #333;
+        }
+        
+        /* Connections Table */
+        .connection-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 0 1px #e0e0e0;
+        }
+        
+        .connection-table th {
+            background: #1e3c72;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        .connection-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .connection-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .connection-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .connection-type {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        /* Network Topology */
+        #network-topology {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .topology-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .topology-controls button {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+        
+        .topology-controls button:hover {
+            background: #2a5298;
+        }
+        
+        /* Statistics */
+        .chart-container {
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+        
+        /* Search and Filter */
+        .search-filter {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        .filter-select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            background: white;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .device-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .nav-tabs, .topology-controls, .search-filter {
+                display: none;
+            }
+            
+            .content-section {
+                display: block !important;
+                page-break-inside: avoid;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vis-network@latest/dist/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ title or "Network Documentation" }}</h1>
+            <p>Generated on {{ generated_date }} from {{ diagram_data.filename or "Visio Diagram" }}</p>
+        </div>
+        
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">Overview</button>
+            <button class="nav-tab" onclick="showTab('inventory')">Device Inventory</button>
+            <button class="nav-tab" onclick="showTab('connections')">Connections</button>
+            <button class="nav-tab" onclick="showTab('topology')">Network Topology</button>
+            <button class="nav-tab" onclick="showTab('statistics')">Statistics</button>
+        </nav>
+        
+        <!-- Overview Section -->
+        <div id="overview" class="content-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>{{ diagram_data.shapes|length }}</h3>
+                    <p>Total Devices</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h3>{{ diagram_data.connections|length }}</h3>
+                    <p>Total Connections</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h3>{{ device_types|length }}</h3>
+                    <p>Device Types</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <h3>{{ network_segments|default(0) }}</h3>
+                    <p>Network Segments</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Network Summary</h2>
+                <p>This network documentation was automatically generated from a Visio diagram. It provides a comprehensive overview of the network infrastructure, including all devices, their connections, and the overall network topology.</p>
+                
+                <h3>Key Highlights</h3>
+                <ul>
+                    <li>Total number of network devices: {{ diagram_data.shapes|length }}</li>
+                    <li>Total number of connections: {{ diagram_data.connections|length }}</li>
+                    <li>Most common device type: {{ most_common_device_type|default("N/A") }}</li>
+                    <li>Documentation generated: {{ generated_date }}</li>
+                </ul>
+                
+                {% if diagram_data.metadata %}
+                <h3>Diagram Metadata</h3>
+                <div class="device-properties">
+                    {% for key, value in diagram_data.metadata.items() %}
+                    <div class="property-row">
+                        <span class="property-key">{{ key }}:</span>
+                        <span class="property-value">{{ value }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Device Inventory Section -->
+        <div id="inventory" class="content-section">
+            <div class="card">
+                <h2>Device Inventory</h2>
+                
+                <div class="search-filter">
+                    <input type="text" class="search-input" placeholder="Search devices..." onkeyup="filterDevices(this.value)">
+                    <select class="filter-select" onchange="filterByType(this.value)">
+                        <option value="">All Device Types</option>
+                        {% for device_type in device_types %}
+                        <option value="{{ device_type }}">{{ device_type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="device-categories">
+                    {% for device_type, devices in devices_by_type.items() %}
+                    <div class="category-section" data-category="{{ device_type }}">
+                        <div class="category-header">
+                            <h3>{{ device_type }}</h3>
+                            <span class="device-count">{{ devices|length }} devices</span>
+                        </div>
+                        <div class="device-grid">
+                            {% for device in devices %}
+                            <div class="device-card" data-device-name="{{ device.name }}" data-device-type="{{ device.type }}">
+                                <div class="device-header">
+                                    <span class="device-name">{{ device.name }}</span>
+                                    <span class="device-type-badge">{{ device.type }}</span>
+                                </div>
+                                <div class="device-properties">
+                                    <div class="property-row">
+                                        <span class="property-key">ID:</span>
+                                        <span class="property-value">{{ device.id }}</span>
+                                    </div>
+                                    {% if device.properties %}
+                                        {% for key, value in device.properties.items() %}
+                                        <div class="property-row">
+                                            <span class="property-key">{{ key }}:</span>
+                                            <span class="property-value">{{ value }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% if device.connections_count %}
+                                    <div class="property-row">
+                                        <span class="property-key">Connections:</span>
+                                        <span class="property-value">{{ device.connections_count }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Connections Section -->
+        <div id="connections" class="content-section">
+            <div class="card">
+                <h2>Network Connections</h2>
+                
+                <div class="search-filter">
+                    <input type="text" class="search-input" placeholder="Search connections..." onkeyup="filterConnections(this.value)">
+                </div>
+                
+                <table class="connection-table" id="connections-table">
+                    <thead>
+                        <tr>
+                            <th>Source Device</th>
+                            <th>Target Device</th>
+                            <th>Connection Type</th>
+                            <th>Properties</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for conn in connections_enhanced %}
+                        <tr data-search="{{ conn.source_name }} {{ conn.target_name }} {{ conn.connection_type }}">
+                            <td>{{ conn.source_name }} ({{ conn.source_id }})</td>
+                            <td>{{ conn.target_name }} ({{ conn.target_id }})</td>
+                            <td><span class="connection-type">{{ conn.connection_type }}</span></td>
+                            <td>
+                                {% if conn.properties %}
+                                    {% for key, value in conn.properties.items() %}
+                                    <strong>{{ key }}:</strong> {{ value }}<br>
+                                    {% endfor %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Network Topology Section -->
+        <div id="topology" class="content-section">
+            <div class="card">
+                <h2>Network Topology Visualization</h2>
+                
+                <div class="topology-controls">
+                    <button onclick="resetTopology()">Reset View</button>
+                    <button onclick="togglePhysics()">Toggle Physics</button>
+                    <button onclick="highlightCriticalPaths()">Highlight Critical Paths</button>
+                    <button onclick="exportTopology()">Export as Image</button>
+                </div>
+                
+                <div id="network-topology"></div>
+            </div>
+        </div>
+        
+        <!-- Statistics Section -->
+        <div id="statistics" class="content-section">
+            <div class="card">
+                <h2>Network Statistics</h2>
+                
+                <div class="chart-container">
+                    <h3>Device Distribution by Type</h3>
+                    <canvas id="deviceTypeChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Connection Density</h3>
+                    <canvas id="connectionDensityChart"></canvas>
+                </div>
+                
+                <h3>Network Metrics</h3>
+                <table class="connection-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Average Connections per Device</td>
+                            <td>{{ avg_connections_per_device|round(2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Most Connected Device</td>
+                            <td>{{ most_connected_device.name }} ({{ most_connected_device.connections }} connections)</td>
+                        </tr>
+                        <tr>
+                            <td>Isolated Devices</td>
+                            <td>{{ isolated_devices|length }}</td>
+                        </tr>
+                        <tr>
+                            <td>Network Density</td>
+                            <td>{{ network_density|round(3) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Tab navigation
+        function showTab(tabName) {
+            // Hide all content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected content section
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Initialize visualizations when their tabs are shown
+            if (tabName === 'topology') {
+                initializeTopology();
+            } else if (tabName === 'statistics') {
+                initializeCharts();
+            }
+        }
+        
+        // Device filtering
+        function filterDevices(searchTerm) {
+            const devices = document.querySelectorAll('.device-card');
+            const term = searchTerm.toLowerCase();
+            
+            devices.forEach(device => {
+                const name = device.getAttribute('data-device-name').toLowerCase();
+                const type = device.getAttribute('data-device-type').toLowerCase();
+                if (name.includes(term) || type.includes(term)) {
+                    device.style.display = 'block';
+                } else {
+                    device.style.display = 'none';
+                }
+            });
+        }
+        
+        function filterByType(deviceType) {
+            const categories = document.querySelectorAll('.category-section');
+            
+            categories.forEach(category => {
+                if (deviceType === '' || category.getAttribute('data-category') === deviceType) {
+                    category.style.display = 'block';
+                } else {
+                    category.style.display = 'none';
+                }
+            });
+        }
+        
+        // Connection filtering
+        function filterConnections(searchTerm) {
+            const rows = document.querySelectorAll('#connections-table tbody tr');
+            const term = searchTerm.toLowerCase();
+            
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search').toLowerCase();
+                if (searchData.includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Network topology visualization
+        let network = null;
+        let physicsEnabled = true;
+        
+        function initializeTopology() {
+            if (network) return; // Already initialized
+            
+            const container = document.getElementById('network-topology');
+            
+            // Create nodes from devices
+            const nodes = new vis.DataSet([
+                {% for device in diagram_data.shapes %}
+                {
+                    id: '{{ device.id }}',
+                    label: '{{ device.name }}',
+                    group: '{{ device.type }}',
+                    title: 'Type: {{ device.type }}\nID: {{ device.id }}'
+                },
+                {% endfor %}
+            ]);
+            
+            // Create edges from connections
+            const edges = new vis.DataSet([
+                {% for conn in diagram_data.connections %}
+                {
+                    from: '{{ conn.source_id }}',
+                    to: '{{ conn.target_id }}',
+                    title: '{{ conn.connection_type }}',
+                    label: '{{ conn.connection_type }}',
+                    arrows: { to: { enabled: true } }
+                },
+                {% endfor %}
+            ]);
+            
+            // Network options
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    size: 20,
+                    font: { size: 14 },
+                    borderWidth: 2
+                },
+                edges: {
+                    width: 2,
+                    color: { color: '#848484' },
+                    font: { size: 12, align: 'middle' },
+                    smooth: { type: 'cubicBezier' }
+                },
+                groups: {
+                    {% for device_type in device_types %}
+                    '{{ device_type }}': { color: { background: getColorForType('{{ device_type }}') } },
+                    {% endfor %}
+                },
+                physics: {
+                    enabled: true,
+                    stabilization: {
+                        enabled: true,
+                        iterations: 200,
+                        updateInterval: 25
+                    }
+                },
+                layout: {
+                    improvedLayout: true
+                }
+            };
+            
+            // Create network
+            network = new vis.Network(container, { nodes, edges }, options);
+        }
+        
+        function getColorForType(type) {
+            const colors = ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#ff9f40'];
+            const index = {{ device_types|list }}.indexOf(type);
+            return colors[index % colors.length];
+        }
+        
+        function resetTopology() {
+            if (network) {
+                network.fit();
+            }
+        }
+        
+        function togglePhysics() {
+            if (network) {
+                physicsEnabled = !physicsEnabled;
+                network.setOptions({ physics: { enabled: physicsEnabled } });
+            }
+        }
+        
+        function highlightCriticalPaths() {
+            // Placeholder for critical path highlighting logic
+            alert('Critical path highlighting would show the most important connections in the network.');
+        }
+        
+        function exportTopology() {
+            // Placeholder for export functionality
+            alert('Export functionality would save the topology as an image.');
+        }
+        
+        // Initialize charts
+        function initializeCharts() {
+            // Device type distribution chart
+            const deviceTypeCtx = document.getElementById('deviceTypeChart').getContext('2d');
+            new Chart(deviceTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ device_types|tojson }},
+                    datasets: [{
+                        data: {{ device_type_counts|tojson }},
+                        backgroundColor: [
+                            '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#ff9f40'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+            
+            // Connection density chart
+            const connectionDensityCtx = document.getElementById('connectionDensityChart').getContext('2d');
+            new Chart(connectionDensityCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ top_connected_devices_names|tojson }},
+                    datasets: [{
+                        label: 'Number of Connections',
+                        data: {{ top_connected_devices_counts|tojson }},
+                        backgroundColor: '#36a2eb'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

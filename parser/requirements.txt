@@ -1,0 +1,27 @@
+# Core
+python-dotenv==1.0.0
+pydantic==2.5.0
+
+# Visio parsing
+vsdx==0.5.1  # Cross-platform VSDX parser
+lxml==4.9.3
+deprecation==2.1.0  # Required by vsdx
+# pywin32==306  # Windows only - for COM automation (optional)
+openpyxl==3.1.2
+
+# Message Queue
+aio-pika==9.3.0
+
+# Storage
+minio==7.2.0
+
+# Utils
+python-dateutil==2.8.2
+
+# Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+mypy==1.7.1
