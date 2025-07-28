@@ -17,6 +17,7 @@ except ImportError:
 
 from .shapes import NetworkShape, Connection, ShapeType
 from .utils import is_visio_file, detect_shape_type
+from .device_resolver import DeviceResolver
 
 class VisioParser:
     """Parse Visio documents and extract network diagram information."""
@@ -25,6 +26,7 @@ class VisioParser:
         self.shapes = []
         self.connections = []
         self.visio_file = None
+        self.device_resolver = DeviceResolver()
         
     def parse_file(self, file_path: Path) -> Dict[str, Any]:
         """
@@ -75,12 +77,41 @@ class VisioParser:
                     page_connections = self._extract_connections_vsdx(page)
                     all_connections.extend(page_connections)
                 
+                # Convert shapes to dictionaries
+                shapes_data = [shape.dict() if hasattr(shape, 'dict') else shape for shape in all_shapes]
+                
+                # Resolve devices for enhanced information
+                resolved_devices = self.device_resolver.resolve_devices(shapes_data)
+                device_inventory = self.device_resolver.generate_device_inventory(resolved_devices)
+                
+                # Enhance shapes with resolved device info
+                for shape in shapes_data:
+                    shape_id = shape.get('id')
+                    if shape_id in resolved_devices:
+                        device_info = resolved_devices[shape_id]
+                        shape['device_info'] = {
+                            'display_name': device_info.display_name,
+                            'device_type': device_info.device_type.value,
+                            'device_role': device_info.device_role.value,
+                            'vendor': device_info.vendor,
+                            'model': device_info.model,
+                            'management_ip': device_info.management_ip,
+                            'location': device_info.location
+                        }
+                
                 return {
                     "filename": file_path.name,
-                    "shapes": [shape.dict() if hasattr(shape, 'dict') else shape for shape in all_shapes],
+                    "shapes": shapes_data,
                     "connections": [conn.dict() if hasattr(conn, 'dict') else conn for conn in all_connections],
                     "metadata": metadata,
-                    "page_count": len(vis.pages)
+                    "page_count": len(vis.pages),
+                    "device_inventory": device_inventory,
+                    "device_summary": {
+                        "total_devices": len(resolved_devices),
+                        "by_type": self._summarize_by_type(resolved_devices),
+                        "by_role": self._summarize_by_role(resolved_devices),
+                        "by_vendor": self._summarize_by_vendor(resolved_devices)
+                    }
                 }
                 
         except Exception as e:
@@ -249,3 +280,27 @@ class VisioParser:
             logger.warning(f"Error extracting metadata: {e}")
         
         return metadata
+    
+    def _summarize_by_type(self, devices: Dict[str, Any]) -> Dict[str, int]:
+        """Summarize devices by type"""
+        summary = {}
+        for device in devices.values():
+            device_type = device.device_type.value
+            summary[device_type] = summary.get(device_type, 0) + 1
+        return summary
+    
+    def _summarize_by_role(self, devices: Dict[str, Any]) -> Dict[str, int]:
+        """Summarize devices by role"""
+        summary = {}
+        for device in devices.values():
+            device_role = device.device_role.value
+            summary[device_role] = summary.get(device_role, 0) + 1
+        return summary
+    
+    def _summarize_by_vendor(self, devices: Dict[str, Any]) -> Dict[str, int]:
+        """Summarize devices by vendor"""
+        summary = {}
+        for device in devices.values():
+            vendor = device.vendor or "Unknown"
+            summary[vendor] = summary.get(vendor, 0) + 1
+        return summary
