@@ -28,7 +28,7 @@ async def register(
         )
 
 @router.post("/token", response_model=Token)
-async def login(
+async def login_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
@@ -54,7 +54,7 @@ async def login(
     
     return Token(access_token=access_token, token_type="bearer")
 
-@router.post("/login", response_model=Token)
+@router.post("/login")
 async def login_json(
     user_login: UserLogin,
     db: AsyncSession = Depends(get_db)
@@ -78,7 +78,19 @@ async def login_json(
         expires_delta=access_token_expires
     )
     
-    return Token(access_token=access_token, token_type="bearer")
+    # Return token with user data for frontend
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": str(user.id),
+            "username": user.username,
+            "email": user.email,
+            "full_name": user.full_name,
+            "is_active": user.is_active,
+            "is_admin": user.is_admin
+        }
+    }
 
 @router.get("/me", response_model=User)
 async def get_current_user_info(

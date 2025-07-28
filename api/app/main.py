@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 import time
 
 from app.config import settings
-from app.routers import projects, documents, auth, health, analysis, metrics, collaboration
+from app.routers import projects, documents, auth, health, analysis, metrics, collaboration, supplemental, organizations, templates
 from app.database import engine
 from app.models import Base
 from app.metrics import (
@@ -151,6 +151,9 @@ app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["analysis"])
 app.include_router(collaboration.router, prefix="/api/collaboration", tags=["collaboration"])
+app.include_router(supplemental.router, prefix="/api", tags=["supplemental"])
+app.include_router(organizations.router, prefix="/api/organizations", tags=["organizations"])
+app.include_router(templates.router, prefix="/api/templates", tags=["templates"])
 app.include_router(metrics.router, tags=["metrics"])
 
 # Custom API documentation endpoints

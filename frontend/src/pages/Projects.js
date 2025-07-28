@@ -36,7 +36,20 @@ const Projects = ({ newProject = false }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    description: ''
+    description: '',
+    customer_name: '',
+    customer_organization: '',
+    customer_contact_name: '',
+    customer_contact_email: '',
+    customer_contact_phone: '',
+    project_code: '',
+    project_manager: '',
+    contract_number: '',
+    po_number: '',
+    start_date: '',
+    end_date: '',
+    budget: '',
+    priority: 'medium'
   });
 
   useEffect(() => {
@@ -52,11 +65,40 @@ const Projects = ({ newProject = false }) => {
       setEditingProject(project);
       setFormData({
         name: project.name,
-        description: project.description
+        description: project.description,
+        customer_name: project.customer_name || '',
+        customer_organization: project.customer_organization || '',
+        customer_contact_name: project.customer_contact_name || '',
+        customer_contact_email: project.customer_contact_email || '',
+        customer_contact_phone: project.customer_contact_phone || '',
+        project_code: project.project_code || '',
+        project_manager: project.project_manager || '',
+        contract_number: project.contract_number || '',
+        po_number: project.po_number || '',
+        start_date: project.start_date ? project.start_date.split('T')[0] : '',
+        end_date: project.end_date ? project.end_date.split('T')[0] : '',
+        budget: project.budget || '',
+        priority: project.priority || 'medium'
       });
     } else {
       setEditingProject(null);
-      setFormData({ name: '', description: '' });
+      setFormData({ 
+        name: '', 
+        description: '',
+        customer_name: '',
+        customer_organization: '',
+        customer_contact_name: '',
+        customer_contact_email: '',
+        customer_contact_phone: '',
+        project_code: '',
+        project_manager: '',
+        contract_number: '',
+        po_number: '',
+        start_date: '',
+        end_date: '',
+        budget: '',
+        priority: 'medium'
+      });
     }
     setIsModalOpen(true);
   };
@@ -64,7 +106,23 @@ const Projects = ({ newProject = false }) => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingProject(null);
-    setFormData({ name: '', description: '' });
+    setFormData({ 
+      name: '', 
+      description: '',
+      customer_name: '',
+      customer_organization: '',
+      customer_contact_name: '',
+      customer_contact_email: '',
+      customer_contact_phone: '',
+      project_code: '',
+      project_manager: '',
+      contract_number: '',
+      po_number: '',
+      start_date: '',
+      end_date: '',
+      budget: '',
+      priority: 'medium'
+    });
     dispatch(clearError());
   };
 
@@ -238,7 +296,7 @@ const Projects = ({ newProject = false }) => {
                   leaveFrom="opacity-100 scale-100"
                   leaveTo="opacity-0 scale-95"
                 >
-                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all max-h-[90vh] overflow-y-auto">
                     <Dialog.Title
                       as="h3"
                       className="text-lg font-medium leading-6 text-gray-900"
@@ -247,36 +305,249 @@ const Projects = ({ newProject = false }) => {
                     </Dialog.Title>
                     
                     <form onSubmit={handleSubmit} className="mt-4">
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                            Project Name
-                          </label>
-                          <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            required
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                            placeholder="My Network Project"
-                          />
+                      <div className="space-y-6">
+                        {/* Basic Information */}
+                        <div className="border-b border-gray-200 pb-4">
+                          <h4 className="text-base font-medium text-gray-900 mb-4">Basic Information</h4>
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="sm:col-span-2">
+                              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                                Project Name *
+                              </label>
+                              <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                required
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="My Network Project"
+                              />
+                            </div>
+                            
+                            <div className="sm:col-span-2">
+                              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                                Description
+                              </label>
+                              <textarea
+                                id="description"
+                                name="description"
+                                rows={3}
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="Brief description of your project..."
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="project_code" className="block text-sm font-medium text-gray-700">
+                                Project Code
+                              </label>
+                              <input
+                                type="text"
+                                id="project_code"
+                                name="project_code"
+                                value={formData.project_code}
+                                onChange={(e) => setFormData({ ...formData, project_code: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="PRJ-2024-001"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+                                Priority
+                              </label>
+                              <select
+                                id="priority"
+                                name="priority"
+                                value={formData.priority}
+                                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                              >
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                              </select>
+                            </div>
+                          </div>
                         </div>
-                        
-                        <div>
-                          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                            Description
-                          </label>
-                          <textarea
-                            id="description"
-                            name="description"
-                            rows={3}
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                            placeholder="Brief description of your project..."
-                          />
+
+                        {/* Customer Information */}
+                        <div className="border-b border-gray-200 pb-4">
+                          <h4 className="text-base font-medium text-gray-900 mb-4">Customer Information</h4>
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                              <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700">
+                                Customer Name
+                              </label>
+                              <input
+                                type="text"
+                                id="customer_name"
+                                name="customer_name"
+                                value={formData.customer_name}
+                                onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="John Smith"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="customer_organization" className="block text-sm font-medium text-gray-700">
+                                Customer Organization
+                              </label>
+                              <input
+                                type="text"
+                                id="customer_organization"
+                                name="customer_organization"
+                                value={formData.customer_organization}
+                                onChange={(e) => setFormData({ ...formData, customer_organization: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="Acme Corporation"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="customer_contact_name" className="block text-sm font-medium text-gray-700">
+                                Contact Name
+                              </label>
+                              <input
+                                type="text"
+                                id="customer_contact_name"
+                                name="customer_contact_name"
+                                value={formData.customer_contact_name}
+                                onChange={(e) => setFormData({ ...formData, customer_contact_name: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="Jane Doe"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="customer_contact_email" className="block text-sm font-medium text-gray-700">
+                                Contact Email
+                              </label>
+                              <input
+                                type="email"
+                                id="customer_contact_email"
+                                name="customer_contact_email"
+                                value={formData.customer_contact_email}
+                                onChange={(e) => setFormData({ ...formData, customer_contact_email: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="jane.doe@acme.com"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="customer_contact_phone" className="block text-sm font-medium text-gray-700">
+                                Contact Phone
+                              </label>
+                              <input
+                                type="tel"
+                                id="customer_contact_phone"
+                                name="customer_contact_phone"
+                                value={formData.customer_contact_phone}
+                                onChange={(e) => setFormData({ ...formData, customer_contact_phone: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="+1 (555) 123-4567"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Project Details */}
+                        <div className="pb-4">
+                          <h4 className="text-base font-medium text-gray-900 mb-4">Project Details</h4>
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                              <label htmlFor="project_manager" className="block text-sm font-medium text-gray-700">
+                                Project Manager
+                              </label>
+                              <input
+                                type="text"
+                                id="project_manager"
+                                name="project_manager"
+                                value={formData.project_manager}
+                                onChange={(e) => setFormData({ ...formData, project_manager: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="Alice Johnson"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
+                                Budget
+                              </label>
+                              <input
+                                type="text"
+                                id="budget"
+                                name="budget"
+                                value={formData.budget}
+                                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="$50,000"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="contract_number" className="block text-sm font-medium text-gray-700">
+                                Contract Number
+                              </label>
+                              <input
+                                type="text"
+                                id="contract_number"
+                                name="contract_number"
+                                value={formData.contract_number}
+                                onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="CNT-2024-001"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="po_number" className="block text-sm font-medium text-gray-700">
+                                PO Number
+                              </label>
+                              <input
+                                type="text"
+                                id="po_number"
+                                name="po_number"
+                                value={formData.po_number}
+                                onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder="PO-2024-001"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
+                                Start Date
+                              </label>
+                              <input
+                                type="date"
+                                id="start_date"
+                                name="start_date"
+                                value={formData.start_date}
+                                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
+                                End Date
+                              </label>
+                              <input
+                                type="date"
+                                id="end_date"
+                                name="end_date"
+                                value={formData.end_date}
+                                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
 

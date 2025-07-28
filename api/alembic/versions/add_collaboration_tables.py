@@ -1,7 +1,7 @@
 """add collaboration tables
 
-Revision ID: 004
-Revises: 003
+Revision ID: add_collaboration_tables
+Revises: add_unique_project_name_constraint
 Create Date: 2024-01-25 10:00:00.000000
 
 """
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '004'
-down_revision = '003'
+revision = 'add_collaboration_tables'
+down_revision = 'add_organization_customization'
 branch_labels = None
 depends_on = None
 
@@ -66,7 +66,7 @@ def upgrade() -> None:
         sa.Column('document_id', postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('timestamp', sa.DateTime(), nullable=True),
-        sa.Column('metadata', sa.JSON(), nullable=True),
+        sa.Column('activity_metadata', sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(['document_id'], ['documents.id'], ),
         sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),

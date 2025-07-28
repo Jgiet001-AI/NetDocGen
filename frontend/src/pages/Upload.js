@@ -14,6 +14,8 @@ import toast from 'react-hot-toast';
 import Layout from '../components/layout/Layout';
 import { fetchProjects, selectProjects } from '../store/projectSlice';
 import { uploadDocument, setUploadProgress } from '../store/documentSlice';
+import PreUploadChecklist from '../components/upload/PreUploadChecklist';
+import InteractiveHelper from '../components/upload/InteractiveHelper';
 
 const Upload = () => {
   const dispatch = useDispatch();
@@ -27,6 +29,11 @@ const Upload = () => {
   const [selectedProject, setSelectedProject] = useState(searchParams.get('project') || '');
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null); // 'success' | 'error' | null
+  const [showChecklist, setShowChecklist] = useState(true);
+  const [checklistCompleted, setChecklistCompleted] = useState(false);
+  const [checklistData, setChecklistData] = useState({});
+  const [showHelper, setShowHelper] = useState(false);
+  const [uploadedDocumentId, setUploadedDocumentId] = useState(null);
 
   useEffect(() => {
     dispatch(fetchProjects());
@@ -79,11 +86,10 @@ const Upload = () => {
       if (uploadDocument.fulfilled.match(result)) {
         setUploadStatus('success');
         toast.success('File uploaded successfully! Processing will begin shortly.');
+        setUploadedDocumentId(result.payload.id);
         
-        // Navigate to document detail after a short delay
-        setTimeout(() => {
-          navigate(`/documents/${result.payload.id}`);
-        }, 2000);
+        // Show interactive helper to gather additional information
+        setShowHelper(true);
       } else {
         setUploadStatus('error');
         toast.error('Upload failed. Please try again.');
@@ -100,6 +106,49 @@ const Upload = () => {
     dispatch(setUploadProgress(0));
   };
 
+  const handleChecklistComplete = (checkedItems) => {
+    setChecklistData(checkedItems);
+    setChecklistCompleted(true);
+    setShowChecklist(false);
+    toast.success('Checklist completed! You can now upload your diagram.');
+  };
+
+  const handleChecklistSkip = () => {
+    setShowChecklist(false);
+    toast.success('Checklist skipped. The AI will help fill in missing information.');
+  };
+
+  const handleHelperComplete = (answers, files) => {
+    toast.success('Additional information saved successfully!');
+    // Navigate to document detail
+    navigate(`/documents/${uploadedDocumentId}`);
+  };
+
+  // Show interactive helper after successful upload
+  if (showHelper && uploadedDocumentId) {
+    return (
+      <Layout>
+        <InteractiveHelper
+          documentId={uploadedDocumentId}
+          missingInfo={[]} // Will be populated by backend analysis
+          onComplete={handleHelperComplete}
+        />
+      </Layout>
+    );
+  }
+
+  // Show checklist first
+  if (showChecklist) {
+    return (
+      <Layout>
+        <PreUploadChecklist
+          onComplete={handleChecklistComplete}
+          onSkip={handleChecklistSkip}
+        />
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="max-w-3xl mx-auto">
@@ -110,6 +159,12 @@ const Upload = () => {
             <p className="mt-2 text-gray-600">
               Upload your network diagram to generate documentation
             </p>
+            {checklistCompleted && (
+              <div className="mt-3 flex items-center text-sm text-green-600">
+                <FiCheckCircle className="mr-2" />
+                Pre-upload checklist completed
+              </div>
+            )}
           </div>
 
           {/* Project Selection */}

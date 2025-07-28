@@ -16,6 +16,9 @@ import ProjectDetail from './pages/ProjectDetail';
 import Documents from './pages/Documents';
 import DocumentDetail from './pages/DocumentDetail';
 import Upload from './pages/Upload';
+import Settings from './pages/Settings';
+import TemplateEditor from './components/templates/TemplateEditor';
+import TemplatePreviewPage from './pages/TemplatePreviewPage';
 
 // Configure axios defaults
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -115,6 +118,24 @@ function App() {
             <Route path="/upload" element={
               <PrivateRoute>
                 <Upload />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/settings" element={
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/settings/templates/:templateId/edit" element={
+              <PrivateRoute>
+                <TemplateEditor />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/settings/templates/:templateId/preview" element={
+              <PrivateRoute>
+                <TemplatePreviewPage />
               </PrivateRoute>
             } />
             

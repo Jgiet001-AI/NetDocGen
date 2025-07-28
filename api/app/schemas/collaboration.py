@@ -92,7 +92,7 @@ class ActivityResponse(BaseModel):
     user_id: UUID
     user_name: str
     timestamp: datetime
-    metadata: Optional[dict]
+    activity_metadata: Optional[dict]
     
     class Config:
         from_attributes = True

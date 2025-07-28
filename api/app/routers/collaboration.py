@@ -17,7 +17,7 @@ from app.schemas.collaboration import (
     CommentCreate, CommentUpdate, CommentResponse,
     ActivityResponse, CollaboratorAdd, CollaboratorResponse
 )
-from app.utils.security import get_password_hash, verify_password
+from app.services.auth import AuthService
 
 router = APIRouter()
 
@@ -59,7 +59,7 @@ async def create_share_link(
         permission=share_data.permission,
         expires_at=share_data.expires_at,
         max_uses=share_data.max_uses,
-        password_hash=get_password_hash(share_data.password) if share_data.password else None,
+        password_hash=AuthService.get_password_hash(share_data.password) if share_data.password else None,
         created_by=current_user.id
     )
     
@@ -105,7 +105,7 @@ async def access_shared_resource(
     
     # Check password if required
     if share_link.password_hash:
-        if not password or not verify_password(password, share_link.password_hash):
+        if not password or not AuthService.verify_password(password, share_link.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid password"

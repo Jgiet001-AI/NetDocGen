@@ -37,6 +37,11 @@ class Document(Base):
     # Generated documentation paths
     generated_files = Column(JSON)  # {"html": "path", "pdf": "path", etc.}
     
+    # Template and Customization
+    template_id = Column(UUID(as_uuid=True), ForeignKey("document_templates.id"))
+    branding_config = Column(JSON)  # Custom branding overrides
+    generation_settings = Column(JSON)  # Settings used for generation
+    
     uploaded_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
     parsed_at = Column(DateTime(timezone=True))
@@ -47,7 +52,8 @@ class Document(Base):
     
     # Relationships
     project = relationship("Project", back_populates="documents")
-    uploaded_by_user = relationship("User")
+    user = relationship("User", back_populates="documents", foreign_keys=[uploaded_by])
+    template = relationship("DocumentTemplate", back_populates="documents")
     share_links = relationship("ShareLink", back_populates="document")
     comments = relationship("Comment", back_populates="document")
     activities = relationship("Activity", back_populates="document")

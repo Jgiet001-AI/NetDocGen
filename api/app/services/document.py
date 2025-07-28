@@ -209,6 +209,10 @@ class DocumentService:
         Returns:
             Updated document record
         """
+        from app.models.user import User
+        from app.models.organization import Organization
+        from app.models.document_template import DocumentTemplate
+        
         # Get document and verify access
         document = await self.get_document(db, document_id, user_id)
         
@@ -225,12 +229,115 @@ class DocumentService:
         document.status = DocumentStatus.GENERATING
         await db.commit()
         
-        # Publish generation request
+        # Get project details
+        project_result = await db.execute(
+            select(Project).where(Project.id == document.project_id)
+        )
+        project = project_result.scalar_one_or_none()
+        
+        project_metadata = {}
+        template_data = {}
+        organization_data = {}
+        
+        if project:
+            # Build project metadata with customer info
+            project_metadata = {
+                "project_name": project.name,
+                "project_description": project.description,
+                "customer_name": project.customer_name or "",
+                "customer_organization": project.customer_organization or "",
+                "customer_contact_name": project.customer_contact_name or "",
+                "customer_contact_email": project.customer_contact_email or "",
+                "customer_contact_phone": project.customer_contact_phone or "",
+                "project_code": project.project_code or "",
+                "project_manager": project.project_manager or "",
+                "contract_number": project.contract_number or "",
+                "po_number": project.po_number or "",
+                "start_date": project.start_date.isoformat() if project.start_date else "",
+                "end_date": project.end_date.isoformat() if project.end_date else "",
+                "budget": project.budget or "",
+                "priority": project.priority or "medium"
+            }
+            
+            # Get user's organization
+            user_result = await db.execute(
+                select(User).where(User.id == user_id)
+            )
+            user = user_result.scalar_one_or_none()
+            
+            if user and user.organization_id:
+                # Get organization data
+                org_result = await db.execute(
+                    select(Organization).where(Organization.id == user.organization_id)
+                )
+                organization = org_result.scalar_one_or_none()
+                
+                if organization:
+                    organization_data = {
+                        "name": organization.name,
+                        "display_name": organization.display_name or organization.name,
+                        "logo_url": organization.logo_url,
+                        "primary_color": organization.primary_color,
+                        "secondary_color": organization.secondary_color,
+                        "accent_color": organization.accent_color,
+                        "default_font_family": organization.default_font_family,
+                        "default_font_size": organization.default_font_size,
+                        "address_line1": organization.address_line1,
+                        "city": organization.city,
+                        "state": organization.state,
+                        "postal_code": organization.postal_code,
+                        "country": organization.country
+                    }
+                    
+                    # Get default template for organization
+                    template_result = await db.execute(
+                        select(DocumentTemplate).where(
+                            DocumentTemplate.organization_id == organization.id,
+                            DocumentTemplate.is_default == True,
+                            DocumentTemplate.is_active == True
+                        )
+                    )
+                    template = template_result.scalar_one_or_none()
+                    
+                    if not template:
+                        # Fall back to system template
+                        template_result = await db.execute(
+                            select(DocumentTemplate).where(
+                                DocumentTemplate.is_system_template == True,
+                                DocumentTemplate.is_default == True,
+                                DocumentTemplate.is_active == True
+                            )
+                        )
+                        template = template_result.scalar_one_or_none()
+                    
+                    if template:
+                        template_data = {
+                            "html_template": template.html_template,
+                            "css_styles": template.css_styles,
+                            "header_template": template.header_template,
+                            "footer_template": template.footer_template,
+                            "cover_page_template": template.cover_page_template
+                        }
+        
+        # Get AI analysis if enabled
+        # TODO: Call AI service to get analysis
+        ai_analysis = {}
+        
+        # Get supplemental data if any
+        # TODO: Retrieve from document supplemental data
+        supplemental_data = {}
+        
+        # Publish generation request with all data
         await mq_service.publish_generate_request(
             document_id=document.id,
             parsed_data_path=document.parsed_data_path,
             formats=formats,
-            project_id=document.project_id
+            project_id=document.project_id,
+            project_metadata=project_metadata,
+            template_data=template_data,
+            organization_data=organization_data,
+            ai_analysis=ai_analysis,
+            supplemental_data=supplemental_data
         )
         
         return document

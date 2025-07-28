@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any, List, Tuple, Optional
 from pathlib import Path
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, BaseLoader, Template
 import markdown
 from datetime import datetime, timedelta
 from collections import defaultdict, Counter
@@ -20,21 +20,37 @@ class DocumentGenerator:
         # Add custom filters for templates
         self.env.filters['date_add_months'] = self._date_add_months
         
-    def generate_documentation(self, diagram_data: Dict[str, Any], output_format: str = "html", ai_analysis: Dict[str, Any] = None) -> bytes:
+    def generate_documentation(self, diagram_data: Dict[str, Any], output_format: str = "html", ai_analysis: Dict[str, Any] = None, supplemental_data: Dict[str, Any] = None, template_config: Dict[str, Any] = None, organization_config: Dict[str, Any] = None) -> bytes:
         """
         Generate documentation from parsed diagram data.
         
         Args:
             diagram_data: Parsed Visio diagram data
             output_format: Output format (html, pdf, docx, markdown)
+            ai_analysis: AI-enhanced content
+            supplemental_data: User-provided supplemental information
+            template_config: Template configuration
+            organization_config: Organization branding configuration
             
         Returns:
             Generated document as bytes
         """
-        logger.info(f"Generating {output_format} documentation")
+        logger.info(f"Generating {output_format} documentation with customization")
         
         # Process and enhance the diagram data
         enhanced_data = self._process_diagram_data(diagram_data)
+        
+        # Apply organization branding and configuration
+        if organization_config:
+            enhanced_data = self._apply_organization_branding(enhanced_data, organization_config)
+        
+        # Apply template configuration
+        if template_config:
+            enhanced_data = self._apply_template_config(enhanced_data, template_config)
+        
+        # Merge supplemental data if provided
+        if supplemental_data:
+            enhanced_data = self._merge_supplemental_data(enhanced_data, supplemental_data)
         
         # Merge AI analysis if provided
         if ai_analysis:
@@ -360,21 +376,66 @@ class DocumentGenerator:
         return high_density
     
     def _generate_html(self, data: Dict[str, Any]) -> bytes:
-        """Generate HTML documentation."""
-        # Choose template based on mode
-        template_name = "professional_network_doc.html" if self.professional_mode else "network_doc.html"
-        template = self.env.get_template(template_name)
+        """Generate HTML documentation with custom template support."""
+        # Check if custom template is provided
+        if data.get("template", {}).get("html_template"):
+            # Use custom template from database
+            template_data = data["template"]
+            template_str = template_data.get("html_template", "")
+            css_styles = template_data.get("css_styles", "")
+            header_template = template_data.get("header_template", "")
+            footer_template = template_data.get("footer_template", "")
+            
+            # Create a Jinja2 template from string
+            template = Template(template_str)
+            
+            # Prepare render data
+            render_data = data.copy()
+            render_data['css_styles'] = css_styles
+            render_data['header_template'] = header_template
+            render_data['footer_template'] = footer_template
+            render_data['generated_date'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Add organization data if available
+            if 'organization' in render_data:
+                org = render_data['organization']
+                # Create CSS variables for organization branding
+                branding_css = f"""
+                :root {{
+                    --primary-color: {org.get('primary_color', '#1e3c72')};
+                    --secondary-color: {org.get('secondary_color', '#2a5298')};
+                    --accent-color: {org.get('accent_color', '#4CAF50')};
+                    --font-family: {org.get('default_font_family', 'Arial, sans-serif')};
+                    --font-size: {org.get('default_font_size', '14px')};
+                }}
+                """
+                render_data['css_styles'] = branding_css + "\n" + css_styles
+            
+            # Ensure all required fields have defaults
+            render_data.setdefault('title', 'Network Documentation')
+            render_data.setdefault('project_name', data.get('project_name', 'Network Infrastructure'))
+            render_data.setdefault('customer_name', data.get('customer_name', ''))
+            render_data.setdefault('customer_organization', data.get('customer_organization', ''))
+            render_data.setdefault('version', data.get('version', '1.0'))
+            
+            # Render template with data
+            html_content = template.render(**render_data)
+        else:
+            # Use default template
+            template_name = "professional_network_doc.html" if self.professional_mode else "network_doc.html"
+            template = self.env.get_template(template_name)
+            
+            # Remove 'title' from data if it exists to avoid duplicate keyword argument
+            render_data = data.copy()
+            title = render_data.pop('title', 'Network Documentation')
+            
+            html_content = template.render(
+                title=title,
+                generated_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                diagram_data=data,
+                **render_data  # Pass all enhanced data except title
+            )
         
-        # Remove 'title' from data if it exists to avoid duplicate keyword argument
-        render_data = data.copy()
-        title = render_data.pop('title', 'Network Documentation')
-        
-        html_content = template.render(
-            title=title,
-            generated_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            diagram_data=data,
-            **render_data  # Pass all enhanced data except title
-        )
         return html_content.encode("utf-8")
     
     def _generate_pdf(self, data: Dict[str, Any]) -> bytes:
@@ -571,6 +632,223 @@ class DocumentGenerator:
             **render_data  # Pass all enhanced data except title
         )
         return md_content.encode("utf-8")
+    
+    def _merge_supplemental_data(self, data: Dict[str, Any], supplemental: Dict[str, Any]) -> Dict[str, Any]:
+        """Merge supplemental information into the main data"""
+        merged = data.copy()
+        answers = supplemental.get("answers", {})
+        
+        # Apply network design pattern (handle "not sure" with AI inference)
+        if "network_design" in answers:
+            design_choice = answers["network_design"]
+            if design_choice == "not_sure":
+                # Mark for AI analysis - will be handled by LLM suggestions
+                merged["network_design_pattern"] = "AI-Inferred"
+                merged["network_type"] = "AI-Analyzed Topology"
+                merged["requires_ai_analysis"] = True
+            else:
+                merged["network_design_pattern"] = design_choice
+                merged["network_type"] = self._map_design_to_type(design_choice)
+        
+        # Apply VLAN information
+        if "vlan_list" in answers and answers["vlan_list"]:
+            merged["vlans"] = self._parse_vlan_list(answers["vlan_list"])
+        
+        # Apply device details (handle "not sure" entries)
+        if "device_details" in answers and answers["device_details"]:
+            merged = self._merge_device_details(merged, answers["device_details"])
+        
+        # Apply port channels
+        if "port_channels" in answers and answers["port_channels"]:
+            merged["port_channels"] = answers["port_channels"]
+        
+        # Apply site details
+        if "site_details" in answers:
+            merged["site_information"] = answers["site_details"]
+        
+        # Apply logical connections
+        if "missing_connections" in answers and answers["missing_connections"]:
+            merged["logical_connections"] = answers["missing_connections"]
+        
+        # Track user-provided vs AI-inferred information
+        merged["supplemental_info_source"] = {
+            "user_provided": len([k for k, v in answers.items() if v and v != "not_sure"]),
+            "ai_inferred": len([k for k, v in answers.items() if v == "not_sure"]),
+            "total_questions": len(answers)
+        }
+        
+        return merged
+    
+    def _map_design_to_type(self, design: str) -> str:
+        """Map design pattern to network type"""
+        mapping = {
+            "collapsed_core": "Collapsed Core Architecture",
+            "three_tier": "Three-Tier Hierarchical",
+            "spine_leaf": "Spine-Leaf Data Center",
+            "hub_spoke": "Hub and Spoke",
+            "mesh": "Mesh Topology",
+            "star": "Star Topology",
+            "ring": "Ring Topology", 
+            "bus": "Bus Topology",
+            "hybrid": "Hybrid Architecture",
+            "dmz": "DMZ/Security-Focused",
+            "campus": "Campus Network",
+            "wan": "WAN/Branch Network",
+            "not_sure": "AI-Analyzed Topology"
+        }
+        return mapping.get(design, "Custom Architecture")
+    
+    def _parse_vlan_list(self, vlan_text: str) -> List[Dict[str, str]]:
+        """Parse VLAN information from text"""
+        vlans = []
+        lines = vlan_text.strip().split('\n')
+        
+        for line in lines:
+            parts = [p.strip() for p in line.split(',')]
+            if len(parts) >= 2:
+                vlans.append({
+                    "id": parts[0],
+                    "name": parts[1],
+                    "description": parts[2] if len(parts) > 2 else ""
+                })
+        
+        return vlans
+    
+    def _merge_device_details(self, data: Dict[str, Any], device_details: List[Dict]) -> Dict[str, Any]:
+        """Merge additional device details, handling 'not sure' responses"""
+        # Create lookup by device name
+        detail_lookup = {d.get("name"): d for d in device_details if d.get("name")}
+        
+        # Track devices needing AI inference
+        devices_needing_inference = []
+        
+        # Update shapes with additional details
+        for shape in data.get("shapes", []):
+            name = shape.get("name")
+            if name and name in detail_lookup:
+                details = detail_lookup[name]
+                device_needs_inference = False
+                
+                # Handle model information
+                if "model" in details:
+                    if details["model"] == "Not Sure":
+                        shape["model_needs_inference"] = True
+                        device_needs_inference = True
+                    else:
+                        shape["model"] = details["model"]
+                
+                # Handle IP information
+                if "ip" in details and details["ip"]:
+                    shape.setdefault("properties", {})["ip_address"] = details["ip"]
+                
+                # Handle role information
+                if "role" in details:
+                    if details["role"] == "Not Sure":
+                        shape["role_needs_inference"] = True
+                        device_needs_inference = True
+                    else:
+                        shape["role"] = details["role"]
+                
+                if device_needs_inference:
+                    devices_needing_inference.append(name)
+        
+        # Track devices that need AI inference
+        if devices_needing_inference:
+            data["devices_needing_ai_inference"] = devices_needing_inference
+        
+        return data
+    
+    def _apply_organization_branding(self, data: Dict[str, Any], organization_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply organization branding and configuration to document data"""
+        enhanced_data = data.copy()
+        
+        # Organization Information
+        enhanced_data.update({
+            "organization_name": organization_config.get("name", ""),
+            "organization_display_name": organization_config.get("display_name", organization_config.get("name", "")),
+            "organization_contact": organization_config.get("primary_contact", ""),
+            "organization_email": organization_config.get("email", ""),
+            "organization_phone": organization_config.get("phone", ""),
+            "organization_website": organization_config.get("website", ""),
+            "organization_address": self._format_organization_address(organization_config),
+            "logo_url": organization_config.get("logo_url", ""),
+        })
+        
+        # Branding Configuration
+        branding = {
+            "primary_color": organization_config.get("primary_color", "#1e3c72"),
+            "secondary_color": organization_config.get("secondary_color", "#2a5298"),
+            "accent_color": organization_config.get("accent_color", "#4CAF50"),
+            "font_family": organization_config.get("default_font_family", "Arial"),
+            "font_size": organization_config.get("default_font_size", "14px"),
+            "letterhead_html": organization_config.get("letterhead_html", ""),
+            "footer_html": organization_config.get("footer_html", ""),
+            "document_numbering_format": organization_config.get("document_numbering_format", "DOC-{year}-{seq:04d}")
+        }
+        
+        enhanced_data["branding"] = branding
+        enhanced_data["custom_branding"] = organization_config.get("branding_config", {})
+        
+        return enhanced_data
+    
+    def _apply_template_config(self, data: Dict[str, Any], template_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply template-specific configuration to document data"""
+        enhanced_data = data.copy()
+        
+        # Template Configuration
+        template_settings = {
+            "template_name": template_config.get("name", "Default Template"),
+            "template_type": template_config.get("template_type", "network_documentation"),
+            "template_version": template_config.get("version", "1.0"),
+            "supported_formats": template_config.get("supported_formats", ["html", "pdf"]),
+            "page_margins": template_config.get("page_margins", {"top": "1in", "right": "1in", "bottom": "1in", "left": "1in"}),
+            "font_config": template_config.get("font_config", {}),
+            "color_scheme": template_config.get("color_scheme", {}),
+            "logo_config": template_config.get("logo_config", {}),
+            "section_config": template_config.get("section_config", {})
+        }
+        
+        enhanced_data["template"] = template_settings
+        
+        # Override branding with template-specific settings if provided
+        if template_config.get("color_scheme"):
+            enhanced_data.setdefault("branding", {}).update(template_config["color_scheme"])
+        
+        if template_config.get("font_config"):
+            font_config = template_config["font_config"]
+            branding = enhanced_data.setdefault("branding", {})
+            branding["font_family"] = font_config.get("primary_font", branding.get("font_family", "Arial"))
+            branding["font_size"] = font_config.get("base_size", branding.get("font_size", "14px"))
+        
+        return enhanced_data
+    
+    def _format_organization_address(self, organization_config: Dict[str, Any]) -> str:
+        """Format organization address for display"""
+        address_parts = []
+        
+        if organization_config.get("address_line1"):
+            address_parts.append(organization_config["address_line1"])
+        
+        if organization_config.get("address_line2"):
+            address_parts.append(organization_config["address_line2"])
+        
+        city_state_zip = []
+        if organization_config.get("city"):
+            city_state_zip.append(organization_config["city"])
+        
+        if organization_config.get("state"):
+            city_state_zip.append(organization_config["state"])
+        
+        if organization_config.get("postal_code"):
+            city_state_zip.append(organization_config["postal_code"])
+        
+        if city_state_zip:
+            address_parts.append(", ".join(city_state_zip))
+        
+        if organization_config.get("country"):
+            address_parts.append(organization_config["country"])
+        
+        return "\n".join(address_parts)
     
     def _date_add_months(self, date_str: str, months: int) -> str:
         """Add months to a date string for template use."""

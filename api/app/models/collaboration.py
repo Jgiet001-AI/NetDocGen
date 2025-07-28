@@ -8,7 +8,7 @@ from uuid import uuid4
 from datetime import datetime
 from enum import Enum
 
-from app.database import Base
+from app.models.base import Base
 
 # Association table for project collaborators
 project_collaborators = Table(
@@ -106,7 +106,7 @@ class Activity(Base):
     # Metadata
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
-    metadata = Column(JSON, nullable=True)  # Additional context
+    activity_metadata = Column(JSON, nullable=True)  # Additional context
     
     # Relationships
     user = relationship("User", back_populates="activities")

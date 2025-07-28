@@ -110,6 +110,22 @@ class GeneratorService:
             if project_metadata:
                 parsed_data.update(project_metadata)
             
+            # Add template data if provided
+            template_data = message.get("template", {})
+            if template_data:
+                parsed_data["template"] = template_data
+            
+            # Add organization data if provided
+            organization_data = message.get("organization", {})
+            if organization_data:
+                parsed_data["organization"] = organization_data
+            
+            # Add AI analysis if provided
+            ai_analysis = message.get("ai_analysis", {})
+            
+            # Add supplemental data if provided
+            supplemental_data = message.get("supplemental_data", {})
+            
             # Generate documents in requested formats
             generated_files = {}
             
@@ -120,7 +136,11 @@ class GeneratorService:
                     # Generate document
                     document_bytes = self.generator.generate_documentation(
                         parsed_data, 
-                        format_type
+                        format_type,
+                        ai_analysis=ai_analysis,
+                        supplemental_data=supplemental_data,
+                        template_config=template_data,
+                        organization_config=organization_data
                     )
                     
                     # Upload to MinIO
